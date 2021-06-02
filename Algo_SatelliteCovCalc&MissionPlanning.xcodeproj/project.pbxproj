@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		585E47792667101000E91DEB /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 585E47782667101000E91DEB /* main.cpp */; };
+		585E47822667108D00E91DEB /* SatelliteInfoManagement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 585E47802667108D00E91DEB /* SatelliteInfoManagement.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -25,6 +26,9 @@
 /* Begin PBXFileReference section */
 		585E47752667101000E91DEB /* Algo_SatelliteCovCalc&MissionPlanning */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "Algo_SatelliteCovCalc&MissionPlanning"; sourceTree = BUILT_PRODUCTS_DIR; };
 		585E47782667101000E91DEB /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		585E47802667108D00E91DEB /* SatelliteInfoManagement.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SatelliteInfoManagement.cpp; sourceTree = "<group>"; };
+		585E47812667108D00E91DEB /* SatelliteInfoManagement.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = SatelliteInfoManagement.hpp; sourceTree = "<group>"; };
+		585E4784266710B000E91DEB /* Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Header.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +62,9 @@
 			isa = PBXGroup;
 			children = (
 				585E47782667101000E91DEB /* main.cpp */,
+				585E47802667108D00E91DEB /* SatelliteInfoManagement.cpp */,
+				585E4784266710B000E91DEB /* Header.h */,
+				585E47812667108D00E91DEB /* SatelliteInfoManagement.hpp */,
 			);
 			path = "Algo_SatelliteCovCalc&MissionPlanning";
 			sourceTree = "<group>";
@@ -118,6 +125,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				585E47822667108D00E91DEB /* SatelliteInfoManagement.cpp in Sources */,
 				585E47792667101000E91DEB /* main.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
