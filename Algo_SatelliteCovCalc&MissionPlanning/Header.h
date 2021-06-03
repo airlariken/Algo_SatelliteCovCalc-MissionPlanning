@@ -12,6 +12,7 @@
 #include <string>
 #include <memory>
 #include <fstream>
+#include <cmath> //fabs double的绝对值
 using namespace std;
 
 #endif /* Header_h */

@@ -11,7 +11,9 @@ int main(int argc, const char * argv[]) {
     // insert code here...
     std::cout << "Hello, World!\n";
     SatelliteInfoManagement m;
-    m.readSatInfoFile();
+//    m.readSatInfoFile();
+    m.readTarInfoFile();
     m.getTime(3601, m.satellite_1_starttime);
+    cout<<endl<<m.satellite_timetable[0]->isInside(EarthPos(260, 3))<<endl;
     return 0;
 }
