@@ -193,50 +193,73 @@ EarthTime SatelliteInfoManagement::getTime(string s) const //传入该卫星的�
 
 void SatelliteInfoManagement::coverCal()
 {
-    vector<pair<EarthTime, int>> target1_window;
+    vector<vector<pair<EarthTime, int>>> target1_window;
     TargetInfo target1 = *target_table[0];
     for (int i = 0; i < all_satellite_timetable.size(); ++i) {
+        vector<pair<EarthTime, int>> temp_vec;
         for (int j = 0; j < all_satellite_timetable[i].size(); ++j) {
             if (all_satellite_timetable[i][j].isInside_polygon(target1._pos)) {
                 pair<EarthTime, int> pair_tmp(getTime(j, satellite_1_starttime), j);
-                target1_window.push_back(pair_tmp);
+                temp_vec.push_back(pair_tmp);
             }
         }
+        target1_window.push_back(temp_vec);
     }
     
-    //求并集
-    sort(target1_window.begin(), target1_window.end(), tar_window_sort());
-    auto ite = unique(target1_window.begin(), target1_window.end(), tar_window_unique());
-    target1_window.erase(ite, target1_window.end());
+//    //求并集
+//    sort(target1_window.begin(), target1_window.end(), tar_window_sort());
+//    auto ite = unique(target1_window.begin(), target1_window.end(), tar_window_unique());
+//    target1_window.erase(ite, target1_window.end());
 
     
-    vector<time_period> satellite_window_period;
+    vector<vector<time_period>> all_satellite_window_period;
     
     EarthTime t_start_time;
     bool start_time_tag = 0, end_time_tag = 1;
-    for(int i = 0; i < target1_window.size()-1; ++i) {
-        //连续时间记录起始和结束
-        if(target1_window[i].second + 1 == target1_window[i+1].second) {
-            if (start_time_tag == 0 && end_time_tag == 1) {
-                t_start_time = EarthTime(target1_window[i].first);
-                start_time_tag = 1;
-                end_time_tag = 0;
+    for (int i = 0; i < target1_window.size(); ++i) {
+        vector<time_period> temp_vec;
+        for(int j = 0; j < target1_window[i].size()-1; ++j) {
+            //连续时间记录起始和结束
+            if(target1_window[i][j].second + 1 == target1_window[i][j+1].second) {
+                if (start_time_tag == 0 && end_time_tag == 1) {
+                    t_start_time = EarthTime(target1_window[i][j].first);
+                    start_time_tag = 1;
+                    end_time_tag = 0;
+                }
+            }
+            else {
+                //断开了，此处应该是结束点
+                if (start_time_tag == 1 && end_time_tag == 0) {
+                    end_time_tag = 1;
+                    start_time_tag = 0;
+                    temp_vec.push_back(time_period(t_start_time, target1_window[i][j].first));
+                }
+            }
+    //        cout<<target1_window[i].first._hours<<":"<<target1_window[i].first._minutes<<":"<<target1_window[i].first._seconds<<endl;
+        }
+        //把结尾处理了
+        auto t_size = target1_window[i].size();
+        temp_vec.push_back(time_period(t_start_time, target1_window[i][t_size-1].first));
+        all_satellite_window_period.push_back(temp_vec);
+    }
+
+    for(int i = 0; i < all_satellite_window_period.size();++i){
+        cout<<"satellite :"<<i<<endl;
+        for (int j = 0; j < all_satellite_window_period[i].size(); ++j) {
+            cout<<"起始时间："<<all_satellite_window_period[i][j].first<<"终止时间："<<all_satellite_window_period[i][j].second<<endl;
             }
         }
-        else {
-            //断开了，此处应该是结束点
-            if (start_time_tag == 1 && end_time_tag == 0) {
-                end_time_tag = 1;
-                start_time_tag = 0;
-                satellite_window_period.push_back(time_period(t_start_time,(target1_window[i].first)));
-            }
-        }
-//        cout<<target1_window[i].first._hours<<":"<<target1_window[i].first._minutes<<":"<<target1_window[i].first._seconds<<endl;
-    }
-    for(int i = 0; i < satellite_window_period.size();++i){
-        cout<<"起始时间："<<satellite_window_period[i].first<<"终止时间："<<satellite_window_period[i].second<<endl;
-    }
+        
 }
+
+
+
+
+
+
+
+
+
 
 //SatelliteCovArea
 
@@ -274,11 +297,7 @@ void SatelliteCovArea::_getBoundary()
 }
 
 //EarthTime
-//ostream &EarthTime::operator<<(ostream &out)
-//{
-//    out<<this->_date<<this->_day<<this->_hours<<this->_minutes<<this->_seconds<<endl;
-//    return out;
-//}
+
 
 void SatelliteCovArea::ini()
 {
@@ -287,7 +306,6 @@ void SatelliteCovArea::ini()
         exit(2);
     }
     _getBoundary();
-//    getRadiusAndCenterPoint();}
 }
 
 bool SatelliteCovArea::isInside_polygon(const EarthPos &p) const

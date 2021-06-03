@@ -56,7 +56,6 @@ struct EarthTime{
     EarthTime() = default;
     EarthTime(int day, int hour, int minute, int second, string date): _day(day), _hours(hour), _minutes(minute), _seconds(second), _date(date){}
     
-//    ostream &operator<<(ostream &out);
     friend ostream& operator<<(ostream& co,const EarthTime& t);
 };
 struct TargetInfo{
@@ -112,9 +111,7 @@ struct two_vec
 {
     EarthPos start_vec; //裁剪窗口边界向量起点
     EarthPos end_vec; //裁剪窗口边界向量终点
-//    bool result(const EarthPos &point) {
-//    return (end_vec._x - start_vec._x) * (point._y - start_vec._y) - (end_vec._y - start_vec._y) * (point._x - start_vec._x);
-//    }
+    //result函数返回叉乘方向
     int result() {
         float t = start_vec._x*end_vec._y - end_vec._x*start_vec._y;
         if (t > 0)
