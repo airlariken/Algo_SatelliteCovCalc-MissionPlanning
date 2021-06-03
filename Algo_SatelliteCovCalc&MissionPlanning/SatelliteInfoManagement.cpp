@@ -6,6 +6,15 @@
 //
 
 #include "SatelliteInfoManagement.hpp"
+
+//全局函数
+ostream& operator<<(ostream& co,const EarthTime& t) {
+    co<<t._day<<' '<<t._hours<<":"<<t._minutes<<":"<<t._minutes;
+    return co;
+}
+
+//SatelliteInfoManagement类
+
 //void SatelliteInfoManagement::saveSatData()
 //{
 //    ofstream fout("tmp", ios::binary|ios::trunc);
@@ -188,7 +197,7 @@ void SatelliteInfoManagement::coverCal()
     TargetInfo target1 = *target_table[0];
     for (int i = 0; i < all_satellite_timetable.size(); ++i) {
         for (int j = 0; j < all_satellite_timetable[i].size(); ++j) {
-            if (all_satellite_timetable[i][j].isInside(target1._pos)) {
+            if (all_satellite_timetable[i][j].isInside_polygon(target1._pos)) {
                 pair<EarthTime, int> pair_tmp(getTime(j, satellite_1_starttime), j);
                 target1_window.push_back(pair_tmp);
             }
@@ -200,8 +209,33 @@ void SatelliteInfoManagement::coverCal()
     auto ite = unique(target1_window.begin(), target1_window.end(), tar_window_unique());
     target1_window.erase(ite, target1_window.end());
 
-    for(auto &i : target1_window)
-        cout<<i.first._hours<<":"<<i.first._minutes<<":"<<i.first._seconds<<endl;
+    
+    vector<time_period> satellite_window_period;
+    
+    EarthTime t_start_time;
+    bool start_time_tag = 0, end_time_tag = 1;
+    for(int i = 0; i < target1_window.size()-1; ++i) {
+        //连续时间记录起始和结束
+        if(target1_window[i].second + 1 == target1_window[i+1].second) {
+            if (start_time_tag == 0 && end_time_tag == 1) {
+                t_start_time = EarthTime(target1_window[i].first);
+                start_time_tag = 1;
+                end_time_tag = 0;
+            }
+        }
+        else {
+            //断开了，此处应该是结束点
+            if (start_time_tag == 1 && end_time_tag == 0) {
+                end_time_tag = 1;
+                start_time_tag = 0;
+                satellite_window_period.push_back(time_period(t_start_time,(target1_window[i].first)));
+            }
+        }
+//        cout<<target1_window[i].first._hours<<":"<<target1_window[i].first._minutes<<":"<<target1_window[i].first._seconds<<endl;
+    }
+    for(int i = 0; i < satellite_window_period.size();++i){
+        cout<<"起始时间："<<satellite_window_period[i].first<<"终止时间："<<satellite_window_period[i].second<<endl;
+    }
 }
 
 //SatelliteCovArea
@@ -224,7 +258,7 @@ void SatelliteCovArea::_findMaxMin(float &max_x, float &min_x, float &max_y, flo
 }
 void SatelliteCovArea::_getCircle()
 {
-    
+    //??
 }
 void SatelliteCovArea::_getBoundary()
 {
@@ -240,11 +274,11 @@ void SatelliteCovArea::_getBoundary()
 }
 
 //EarthTime
-ostream &EarthTime::operator<<(ostream &out)
-{
-    out<<this->_date<<this->_day<<this->_hours<<this->_minutes<<this->_seconds<<endl;
-    return out;
-}
+//ostream &EarthTime::operator<<(ostream &out)
+//{
+//    out<<this->_date<<this->_day<<this->_hours<<this->_minutes<<this->_seconds<<endl;
+//    return out;
+//}
 
 void SatelliteCovArea::ini()
 {
@@ -256,7 +290,35 @@ void SatelliteCovArea::ini()
 //    getRadiusAndCenterPoint();}
 }
 
-bool SatelliteCovArea::isInside(const EarthPos &p) const
+bool SatelliteCovArea::isInside_polygon(const EarthPos &p) const
+{
+    int x;
+    int result;//-1和+1表示方向
+    bool first_tag = 1;
+    if (polygon_pos.size() == 0) {
+        exit(5);
+    }
+    for (int i = 0; i < polygon_pos.size(); ++i) {
+        two_vec t_two_vec;
+        if (i == polygon_pos.size()-1) {
+            t_two_vec = two_vec(polygon_pos[i], p, polygon_pos[0], p);
+        }
+        t_two_vec = two_vec(polygon_pos[i], p, polygon_pos[i+1], p);
+        if (first_tag == 1) {   //第一次给result初始化
+            result = t_two_vec.result();
+            first_tag = 0;
+        }
+        else{           //叉乘方向不同说明点在外
+            x = t_two_vec.result();
+            if (result * x < 0) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool SatelliteCovArea::isInside_circle(const EarthPos &p) const
 {
     float t = pow(p._x - this->circle_center._x, 2) + pow(p._y - this->circle_center._y, 2);
     if (t < pow(this->circle_radius, 2)) {

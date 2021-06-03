@@ -44,7 +44,8 @@ struct SatelliteCovArea{
     void _getBoundary();
     void _getCircle();
     
-    bool isInside(const EarthPos &p) const;
+    bool isInside_circle(const EarthPos &p) const;
+    bool isInside_polygon(const EarthPos &p) const;
 };
 struct EarthTime{
     int _day = 0;
@@ -55,7 +56,8 @@ struct EarthTime{
     EarthTime() = default;
     EarthTime(int day, int hour, int minute, int second, string date): _day(day), _hours(hour), _minutes(minute), _seconds(second), _date(date){}
     
-    ostream &operator<<(ostream &out);
+//    ostream &operator<<(ostream &out);
+    friend ostream& operator<<(ostream& co,const EarthTime& t);
 };
 struct TargetInfo{
     string target_name;
@@ -67,6 +69,8 @@ struct TargetInfo{
 };
 class SatelliteInfoManagement
 {
+private:
+    typedef pair<EarthTime, EarthTime> time_period;
 //private:
 public:
 //    vector<SatelliteCovArea> singal_satellite_timetable;
@@ -103,4 +107,28 @@ struct tar_window_unique{
         return false;
     }
 };
+
+struct two_vec
+{
+    EarthPos start_vec; //裁剪窗口边界向量起点
+    EarthPos end_vec; //裁剪窗口边界向量终点
+//    bool result(const EarthPos &point) {
+//    return (end_vec._x - start_vec._x) * (point._y - start_vec._y) - (end_vec._y - start_vec._y) * (point._x - start_vec._x);
+//    }
+    int result() {
+        float t = start_vec._x*end_vec._y - end_vec._x*start_vec._y;
+        if (t > 0)
+            return 1;
+        else if (t < 0)
+            return -1;
+        else return 0;
+    }
+    two_vec(const EarthPos &p1, const EarthPos &p2, const EarthPos &p3, const EarthPos &p4) {
+        start_vec = EarthPos(p2._x-p1._x, p2._y-p1._y);
+        end_vec = EarthPos(p4._x-p3._x, p4._y-p3._y);
+    }
+    two_vec() = default;
+};
+ 
+
 #endif /* SatelliteInfoManagement_hpp */
