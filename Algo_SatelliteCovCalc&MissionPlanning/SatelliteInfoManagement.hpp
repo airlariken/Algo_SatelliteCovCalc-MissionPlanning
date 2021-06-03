@@ -40,8 +40,9 @@ struct SatelliteCovArea{
     //cstor
         SatelliteCovArea() = default;
     void ini();//circle和rec的初始化
-    void findMaxMin(float &max_x, float &min_x, float &max_y, float &min_y) const;
-    void getBoundary();
+    void _findMaxMin(float &max_x, float &min_x, float &max_y, float &min_y) const;
+    void _getBoundary();
+    void _getCircle();
     
     bool isInside(const EarthPos &p) const;
 };
@@ -68,16 +69,38 @@ class SatelliteInfoManagement
 {
 //private:
 public:
-    vector<SatelliteCovArea*> satellite_timetable;
+//    vector<SatelliteCovArea> singal_satellite_timetable;
+    vector<vector<SatelliteCovArea>> all_satellite_timetable;
     vector<TargetInfo*> target_table;
     
 public:
     void readSatInfoFile();
     void readTarInfoFile();
+//    void saveSatData();
+//    void readSatData();
     EarthTime getTime(const int& cnt, const EarthTime& start_time) const;//传入该卫星的起始观察时间和第几秒观察反推出目前时间
     EarthTime getTime(string s) const;//传入该卫星的时间字符串返回一个Earthtime数据结构
     
+    void coverCal();
+    void _signalCov();
+    void _doubleCov();
     //test
     EarthTime satellite_1_starttime;
+};
+
+struct tar_window_sort{
+    bool operator()(const pair<EarthTime, int> &obj1,const pair<EarthTime, int> &obj2) const {
+        if (obj1.second < obj2.second)
+            return true;
+        return false;
+    }
+
+};
+struct tar_window_unique{
+    bool operator()(const pair<EarthTime, int> &obj1,const pair<EarthTime, int> &obj2) const {
+        if (obj1.second == obj2.second)
+            return true;
+        return false;
+    }
 };
 #endif /* SatelliteInfoManagement_hpp */
