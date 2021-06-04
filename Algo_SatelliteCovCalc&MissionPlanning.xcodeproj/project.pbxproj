@@ -24,6 +24,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		5818CA3C266A5C6F00E7E400 /* AllKindOfStruct.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AllKindOfStruct.h; sourceTree = "<group>"; };
 		585E47752667101000E91DEB /* Algo_SatelliteCovCalc&MissionPlanning */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "Algo_SatelliteCovCalc&MissionPlanning"; sourceTree = BUILT_PRODUCTS_DIR; };
 		585E47782667101000E91DEB /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		585E47802667108D00E91DEB /* SatelliteInfoManagement.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SatelliteInfoManagement.cpp; sourceTree = "<group>"; };
@@ -66,6 +67,7 @@
 				585E47802667108D00E91DEB /* SatelliteInfoManagement.cpp */,
 				585E4784266710B000E91DEB /* Header.h */,
 				585E47812667108D00E91DEB /* SatelliteInfoManagement.hpp */,
+				5818CA3C266A5C6F00E7E400 /* AllKindOfStruct.h */,
 				586050BD266A4EB900677745 /* Readme.md */,
 			);
 			path = "Algo_SatelliteCovCalc&MissionPlanning";
