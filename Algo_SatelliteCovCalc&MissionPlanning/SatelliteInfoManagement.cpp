@@ -97,12 +97,14 @@ void SatelliteInfoManagement::readSatInfoFile()
                 satellite_1_starttime = getTime(s);
             }
             temp.push_back(SatelliteCovArea());
-            for (int i = 0 ; i < 21; ++i) {
+            for (int i = 0 ; i < 20; ++i) {//最后一个与第一个重复了草
                 double pos_x, pos_y;
                 fin>>pos_x>>pos_y;
+//                cout<<pos_x<<'\t'<<pos_y<<endl;
                 (*(temp.end()-1)).polygon_pos.push_back(EarthPos(pos_x, pos_y));
 //                (*(temp.end()-1)).ini();
             }
+            getline(fin, s);
             getline(fin, s);
         }
         

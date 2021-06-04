@@ -10,10 +10,10 @@
 #include "Header.h"
 
 struct EarthPos{
-    float _x = -1;
-    float _y = -1;
+    double _x = -1;
+    double _y = -1;
     EarthPos() = default;
-    EarthPos(float x, float y):_x(x), _y(y){}
+    EarthPos(double x, double y):_x(x), _y(y){}
 };
 //struct Rectangle {
 //    EarthPos left_up;
@@ -82,7 +82,7 @@ struct two_vec//两个向量
     EarthPos end_vec; //裁剪窗口边界向量终点
     //result函数返回叉乘方向
     int result() {
-        float t = start_vec._x*end_vec._y - end_vec._x*start_vec._y;
+        double t = start_vec._x*end_vec._y - end_vec._x*start_vec._y;
         if (t > 0)
             return 1;
         else if (t < 0)
