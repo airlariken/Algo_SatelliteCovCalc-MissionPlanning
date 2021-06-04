@@ -29,6 +29,7 @@
 		585E47802667108D00E91DEB /* SatelliteInfoManagement.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SatelliteInfoManagement.cpp; sourceTree = "<group>"; };
 		585E47812667108D00E91DEB /* SatelliteInfoManagement.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = SatelliteInfoManagement.hpp; sourceTree = "<group>"; };
 		585E4784266710B000E91DEB /* Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Header.h; sourceTree = "<group>"; };
+		586050BD266A4EB900677745 /* Readme.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Readme.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -65,6 +66,7 @@
 				585E47802667108D00E91DEB /* SatelliteInfoManagement.cpp */,
 				585E4784266710B000E91DEB /* Header.h */,
 				585E47812667108D00E91DEB /* SatelliteInfoManagement.hpp */,
+				586050BD266A4EB900677745 /* Readme.md */,
 			);
 			path = "Algo_SatelliteCovCalc&MissionPlanning";
 			sourceTree = "<group>";

@@ -117,7 +117,7 @@ void SatelliteInfoManagement::readTarInfoFile()
 {
     for (int i = 0; i < TARGET_FILE_CNT; ++i) {
         string path = "/Users/chenziwei/Desktop/算法课设/Data/TargetInfo/target.txt";
-        const char a = i+'1';   string t;  t+=a;
+        const char a = i + '1';   string t;  t+=a;
                path.insert(60, t.c_str());
         ifstream fin(path);
         if (fin.fail()) {
@@ -139,6 +139,16 @@ void SatelliteInfoManagement::readTarInfoFile()
     return;
 }
 
+int SatelliteInfoManagement::getTime(EarthTime t, EarthTime start)
+{
+    int sum = 0;
+    sum += (t._day - start._day) * 3600*24;
+    sum += (t._hours - start._hours) * 3600;
+    sum += (t._minutes - start._minutes) * 60;
+    sum += t._seconds - start._seconds;
+    return sum;
+}
+
 EarthTime SatelliteInfoManagement::getTime(const int& cnt, const EarthTime& start_time) const
 {
     int t_d = start_time._day, t_h = start_time._hours, t_m = start_time._minutes, t_s = start_time._seconds;
@@ -158,13 +168,7 @@ EarthTime SatelliteInfoManagement::getTime(const int& cnt, const EarthTime& star
 
 EarthTime SatelliteInfoManagement::getTime(string s) const //传入该卫星的时间字符串返回一个Earthtime数据结构
 {
-//    auto fi = s.find("/");              //好像就是个int类型返回值
-//    string t = s.substr(0, fi);
-//    s = s.substr(fi);
-//
-//    fi = s.find("/");
-//    string t = s.substr(0, fi);
-//    s = s.substr(fi);
+
     int flag = 0, cnt = 0;//切分时间，将2021/1/1 x:xx:xx切分为 2022/1/ 和1 x:xx:xx:xx
     while (flag != 2) {
         if(s[cnt] == '/')
@@ -173,8 +177,7 @@ EarthTime SatelliteInfoManagement::getTime(string s) const //传入该卫星的�
     }
     string temp_time = s.substr(0, cnt);
     s = s.substr(cnt);
-//    cout<<temp_time<<endl;
-//    cout<<s<<endl;
+
     
     int t_d, t_h, t_m, t_s;
     auto fi = s.find(" ");
@@ -183,7 +186,7 @@ EarthTime SatelliteInfoManagement::getTime(string s) const //传入该卫星的�
     s = s.substr(fi+1);
     //剩余字符串为x xx:xx::xx
     cnt = 0;
-    while (s[cnt] != ':') {         //找到第一个: 因为小时可能是1位也可能是2位
+    while (s[cnt] != ':') {         //找到第一个: 因为小时位可能是1位也可能是2位
         cnt++;
     }
     temp = s.substr(0, cnt);
@@ -202,12 +205,20 @@ EarthTime SatelliteInfoManagement::getTime(string s) const //传入该卫星的�
 void SatelliteInfoManagement::coverCal(const int &file_num)
 {
     //  @target_i_window 9个卫星对一个目标的观测结果，a[i][j] 为第i个卫星对第file_num文件的第j个目标的观测窗口，其中第一个参数为转换时间，第二个是从starttime开始经过的秒数
+    string path = "mid_res";
+    char a= file_num + '0';
+    path.push_back(a);  path.insert(path.length(), ".txt");
+    ofstream fout(path, ios::trunc);
     
-    ofstream fout("mid_res", ios::trunc);
-    
+    string path2 = "singal_cov_res";
+    char a2= file_num + '0';
+    path2.push_back(a2);  path2.insert(path2.length(), ".txt");
+    ofstream fout2(path2, ios::trunc);
     
     for (int k = 0; k < all_target_table[file_num].size(); ++k) {
-        vector<vector<pair<EarthTime, int>>> target_i_window;
+        vector<vector<pair<EarthTime, int>>> target_i_window;//存单个文星
+        vector<pair<EarthTime, int>> target_i_window_of_all_sat;//所有卫星一起存
+        target_i_window_of_all_sat.reserve(10000);
         TargetInfo target1 = all_target_table[file_num][k];
         for (int i = 0; i < all_satellite_timetable.size(); ++i) {
             vector<pair<EarthTime, int>> temp_vec;
@@ -215,28 +226,94 @@ void SatelliteInfoManagement::coverCal(const int &file_num)
                 if (all_satellite_timetable[i][j].isInside_polygon(target1._pos)) {
                     pair<EarthTime, int> pair_tmp(getTime(j, satellite_1_starttime), j);
                     temp_vec.push_back(pair_tmp);
+                    target_i_window_of_all_sat.push_back(pair_tmp);
                 }
             }
             target_i_window.push_back(temp_vec);
         }
 
+        _signalCov(target_i_window_of_all_sat, fout2, k);//计算所有卫星并集覆盖（单覆盖）
+        _saveEverySateObsWindow(target_i_window, fout, k);//分开计算每个卫星对目标的覆盖
+    }
+
         
-        vector<vector<time_period>> all_satellite_window_period;
+}
+
+void SatelliteInfoManagement::_saveEverySateObsWindow(vector<vector<pair<EarthTime, int>>>& target_i_window,ofstream &fout, const int &target_num)
+{
+//  @every_satellite_window_period 是9个卫星对一个目标的观测时间段窗口，a[i][j] 为第i个卫星对第file_num的target文件的第k个目标的观测窗口，其中第一个参数为起始时间，第二个是结束时间
+vector<vector<time_period>> every_satellite_window_period;
+EarthTime t_start_time;
+    for (int i = 0; i < target_i_window.size(); ++i) {
+        bool start_time_tag = 0, end_time_tag = 1;
+        vector<time_period> temp_vec;
+        if (target_i_window[i].size() == 0) {//可能存在卫星观测窗口是空的情况
+            every_satellite_window_period.push_back(vector<time_period>());
+            continue;
+        }
         
-        EarthTime t_start_time;
-        for (int i = 0; i < target_i_window.size(); ++i) {
-            bool start_time_tag = 0, end_time_tag = 1;
-            vector<time_period> temp_vec;
-            if (target_i_window[i].size() == 0) {//可能存在卫星观测窗口是空的情况
-                all_satellite_window_period.push_back(vector<time_period>());
-                continue;
+        for(int j = 0; j < target_i_window[i].size()-1; ++j) {
+            //连续时间记录起始和结束
+            if(target_i_window[i][j].second + 1 == target_i_window[i][j+1].second) {
+                if (start_time_tag == 0 && end_time_tag == 1) {
+                    t_start_time = EarthTime(target_i_window[i][j].first);
+                    start_time_tag = 1;
+                    end_time_tag = 0;
+                }
             }
+            else {
+                //断开了，此处应该是结束点
+                if (start_time_tag == 1 && end_time_tag == 0) {
+                    start_time_tag = 0;
+                    end_time_tag = 1;
+                    temp_vec.push_back(time_period(t_start_time, target_i_window[i][j].first));
+                }
+            }
+        }
+        //把结尾处理了
+        auto t_size = target_i_window[i].size();
+        temp_vec.push_back(time_period(t_start_time, target_i_window[i][t_size-1].first));
+        every_satellite_window_period.push_back(temp_vec);
+    }
+
+    if (fout.fail()) {
+        cerr<<"fali to open mid_res"<<endl;
+        exit(6);
+    }
+    fout<<"target_num:"<<target_num<<endl;
+    for(int i = 0; i < every_satellite_window_period.size();++i){
+        fout<<"satellite:"<<i<<endl;
+        for (int j = 0; j < every_satellite_window_period[i].size(); ++j) {
+            if (every_satellite_window_period[i][j].first == EarthTime())
+                break;
+            fout<<every_satellite_window_period[i][j].first<<'\t'<<every_satellite_window_period[i][j].second<<endl;
+        }
+    }
+}
+void SatelliteInfoManagement::calAllTargetCoverage()
+{
+    for (int i = 0; i < TARGET_FILE_CNT; ++i) {
+        coverCal(i);
+    }
+}
+
+void SatelliteInfoManagement::_signalCov(vector<pair<EarthTime, int>> target_i_window_of_all_sat, ofstream &fout, const int &target_num)
+{
+    //求并集
+            sort(target_i_window_of_all_sat.begin(), target_i_window_of_all_sat.end(), tar_window_sort());
+            auto ite = unique(target_i_window_of_all_sat.begin(), target_i_window_of_all_sat.end(), tar_window_unique());
+            target_i_window_of_all_sat.erase(ite, target_i_window_of_all_sat.end());
             
-            for(int j = 0; j < target_i_window[i].size()-1; ++j) {
+            
+            vector<time_period> all_satellite_window_period;//所有卫星并集的时间段求
+            EarthTime t_start_time;
+            bool start_time_tag = 0, end_time_tag = 1;
+                    
+            for(int j = 0; j < target_i_window_of_all_sat.size()-1; ++j) {
                 //连续时间记录起始和结束
-                if(target_i_window[i][j].second + 1 == target_i_window[i][j+1].second) {
+                if(target_i_window_of_all_sat[j].second + 1 == target_i_window_of_all_sat[j+1].second) {
                     if (start_time_tag == 0 && end_time_tag == 1) {
-                        t_start_time = EarthTime(target_i_window[i][j].first);
+                        t_start_time = EarthTime(target_i_window_of_all_sat[j].first);
                         start_time_tag = 1;
                         end_time_tag = 0;
                     }
@@ -246,56 +323,31 @@ void SatelliteInfoManagement::coverCal(const int &file_num)
                     if (start_time_tag == 1 && end_time_tag == 0) {
                         start_time_tag = 0;
                         end_time_tag = 1;
-                        temp_vec.push_back(time_period(t_start_time, target_i_window[i][j].first));
+                        all_satellite_window_period.push_back(time_period(t_start_time, target_i_window_of_all_sat[j].first));
                     }
                 }
             }
             //把结尾处理了
-//            if (target_i_window[i][target_i_window[i].size()-2].second + 1 == target_i_window[i][target_i_window[i].size()-1].second/* && target_i_window[i].size() >= 2*/) {
-                auto t_size = target_i_window[i].size();
-                temp_vec.push_back(time_period(t_start_time, target_i_window[i][t_size-1].first));
-                all_satellite_window_period.push_back(temp_vec);
-//            }
+            auto t_size = target_i_window_of_all_sat.size();
+            all_satellite_window_period.push_back(time_period(t_start_time, target_i_window_of_all_sat[t_size-1].first));
 
-        }
-        
-        if (fout.fail()) {
-            cerr<<"fali to open mid_res"<<endl;
-            exit(6);
-        }
-        fout<<"target_num:"<<k<<endl;
-        cout<<"target_num:"<<k<<endl;
-        for(int i = 0; i < all_satellite_window_period.size();++i){
-            fout<<"satellite :"<<i<<endl;
-            for (int j = 0; j < all_satellite_window_period[i].size(); ++j) {
-                if (all_satellite_window_period[i][j].first == EarthTime()/*all_satellite_window_period[i][j].second*/)
-                    break;
-                fout<<all_satellite_window_period[i][j].first<<'\t'<<all_satellite_window_period[i][j].second<<endl;
-                cout<<all_satellite_window_period[i][j].first<<'\t'<<all_satellite_window_period[i][j].second<<endl;
-                }
+            if (fout.fail()) {
+                cerr<<"fali to open mid_res"<<endl;
+                exit(6);
             }
-        
-    }
-
+            fout<<"target_num:"<<target_num<<endl;
+                
+            for (int j = 0; j < all_satellite_window_period.size(); ++j) {
+    //            if (all_satellite_window_period[j].first == EarthTime())
+    //                break;
+                fout<<all_satellite_window_period[j].first<<'\t'<<all_satellite_window_period[j].second<<endl;
+            }
     
-//    //求并集
-//    sort(target1_window.begin(), target1_window.end(), tar_window_sort());
-//    auto ite = unique(target1_window.begin(), target1_window.end(), tar_window_unique());
-//    target1_window.erase(ite, target1_window.end());
-
-    
-
-        
 }
-
-
-
-void SatelliteInfoManagement::calAllTargetCoverage()
+void SatelliteInfoManagement::_doubleCov(const int &file_num)
 {
     
 }
-
-
 
 
 
