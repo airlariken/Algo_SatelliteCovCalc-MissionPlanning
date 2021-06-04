@@ -300,48 +300,46 @@ void SatelliteInfoManagement::calAllTargetCoverage()
 void SatelliteInfoManagement::_signalCov(vector<pair<EarthTime, int>> target_i_window_of_all_sat, ofstream &fout, const int &target_num)
 {
     //求并集
-            sort(target_i_window_of_all_sat.begin(), target_i_window_of_all_sat.end(), tar_window_sort());
-            auto ite = unique(target_i_window_of_all_sat.begin(), target_i_window_of_all_sat.end(), tar_window_unique());
-            target_i_window_of_all_sat.erase(ite, target_i_window_of_all_sat.end());
+    sort(target_i_window_of_all_sat.begin(), target_i_window_of_all_sat.end(), tar_window_sort());
+    auto ite = unique(target_i_window_of_all_sat.begin(), target_i_window_of_all_sat.end(), tar_window_unique());
+    target_i_window_of_all_sat.erase(ite, target_i_window_of_all_sat.end());
+    
+    
+    vector<time_period> all_satellite_window_period;//所有卫星并集的时间段求
+    EarthTime t_start_time;
+    bool start_time_tag = 0, end_time_tag = 1;
             
-            
-            vector<time_period> all_satellite_window_period;//所有卫星并集的时间段求
-            EarthTime t_start_time;
-            bool start_time_tag = 0, end_time_tag = 1;
-                    
-            for(int j = 0; j < target_i_window_of_all_sat.size()-1; ++j) {
-                //连续时间记录起始和结束
-                if(target_i_window_of_all_sat[j].second + 1 == target_i_window_of_all_sat[j+1].second) {
-                    if (start_time_tag == 0 && end_time_tag == 1) {
-                        t_start_time = EarthTime(target_i_window_of_all_sat[j].first);
-                        start_time_tag = 1;
-                        end_time_tag = 0;
-                    }
-                }
-                else {
-                    //断开了，此处应该是结束点
-                    if (start_time_tag == 1 && end_time_tag == 0) {
-                        start_time_tag = 0;
-                        end_time_tag = 1;
-                        all_satellite_window_period.push_back(time_period(t_start_time, target_i_window_of_all_sat[j].first));
-                    }
-                }
+    for(int j = 0; j < target_i_window_of_all_sat.size()-1; ++j) {
+        //连续时间记录起始和结束
+        if(target_i_window_of_all_sat[j].second + 1 == target_i_window_of_all_sat[j+1].second) {
+            if (start_time_tag == 0 && end_time_tag == 1) {
+                t_start_time = EarthTime(target_i_window_of_all_sat[j].first);
+                start_time_tag = 1;
+                end_time_tag = 0;
             }
-            //把结尾处理了
-            auto t_size = target_i_window_of_all_sat.size();
-            all_satellite_window_period.push_back(time_period(t_start_time, target_i_window_of_all_sat[t_size-1].first));
+        }
+        else {
+            //断开了，此处应该是结束点
+            if (start_time_tag == 1 && end_time_tag == 0) {
+                start_time_tag = 0;
+                end_time_tag = 1;
+                all_satellite_window_period.push_back(time_period(t_start_time, target_i_window_of_all_sat[j].first));
+            }
+        }
+    }
+    //把结尾处理了
+    auto t_size = target_i_window_of_all_sat.size();
+    all_satellite_window_period.push_back(time_period(t_start_time, target_i_window_of_all_sat[t_size-1].first));
 
-            if (fout.fail()) {
-                cerr<<"fali to open mid_res"<<endl;
-                exit(6);
-            }
-            fout<<"target_num:"<<target_num<<endl;
-                
-            for (int j = 0; j < all_satellite_window_period.size(); ++j) {
-    //            if (all_satellite_window_period[j].first == EarthTime())
-    //                break;
-                fout<<all_satellite_window_period[j].first<<'\t'<<all_satellite_window_period[j].second<<endl;
-            }
+    if (fout.fail()) {
+        cerr<<"fali to open mid_res"<<endl;
+        exit(6);
+    }
+    fout<<"target_num:"<<target_num<<endl;
+        
+    for (int j = 0; j < all_satellite_window_period.size(); ++j) {
+        fout<<all_satellite_window_period[j].first<<'\t'<<all_satellite_window_period[j].second<<endl;
+    }
     
 }
 void SatelliteInfoManagement::_doubleCov(const int &file_num)

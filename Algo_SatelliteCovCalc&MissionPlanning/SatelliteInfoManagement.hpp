@@ -14,6 +14,23 @@
 #define SATELLITE_FILE_CNT 9
 #define TARGET_FILE_CNT 9
 
+struct SatelliteCovArea{
+    vector<EarthPos> polygon_pos;       //记录多边形的所有顶点
+    EarthPos circle_center;
+    float circle_radius;
+    Rectangle rec_boundary;             //矩形边界
+    
+    //cstor
+        SatelliteCovArea() = default;
+    void ini();//circle和rec的初始化
+    void _findMaxMin(float &max_x, float &min_x, float &max_y, float &min_y) const;
+    void _getBoundary();
+    void _getCircle();
+    
+    bool isInside_circle(const EarthPos &p) const;
+    bool isInside_polygon(const EarthPos &p) const;
+};
+
 class SatelliteInfoManagement
 {
 private:
