@@ -9,7 +9,7 @@
 
 //全局函数
 ostream& operator<<(ostream& co,const EarthTime& t) {
-    co<<t._day<<' '<<t._hours<<":"<<t._minutes<<":"<<t._minutes;
+    co<<t._day<<' '<<t._hours<<":"<<t._minutes<<":"<<t._seconds;
     return co;
 }
 
@@ -72,7 +72,7 @@ ostream& operator<<(ostream& co,const EarthTime& t) {
 //}
 void SatelliteInfoManagement::readSatInfoFile()
 {
-    for (int i = 0; i < 9; ++i){
+    for (int i = 0; i < SATELLITE_FILE_CNT; ++i){
         string path = "/Users/chenziwei/Desktop/算法课设/Data/SatelliteInfo/SatCoverInfo_.txt";
         const char a = i+'0';   string t;  t+=a;
         path.insert(70, t.c_str());
@@ -115,19 +115,27 @@ void SatelliteInfoManagement::readSatInfoFile()
 
 void SatelliteInfoManagement::readTarInfoFile()
 {
-    ifstream fin("/Users/chenziwei/Desktop/算法课设/Data/TargetInfo/target1.txt");
-    if (fin.fail()) {
-        cerr<<"fail to open TargetInfofile!"<<endl;
-        exit(1);
+    for (int i = 0; i < TARGET_FILE_CNT; ++i) {
+        string path = "/Users/chenziwei/Desktop/算法课设/Data/TargetInfo/target.txt";
+        const char a = i+'1';   string t;  t+=a;
+               path.insert(60, t.c_str());
+        ifstream fin(path);
+        if (fin.fail()) {
+            cerr<<"fail to open TargetInfofile!"<<endl;
+            exit(1);
+        }
+        vector<TargetInfo> tmp_vec;
+        while (!fin.eof()) {
+            string t_name;
+            float x, y;
+            int obs_t, reward;
+            fin>>t_name>>x>>y>>obs_t>>reward;
+            tmp_vec.push_back(TargetInfo(t_name, EarthPos(x, y), obs_t, reward));
+        }
+        all_target_table.push_back(tmp_vec);
+        fin.close();
     }
-    while (!fin.eof()) {
-        string t_name;
-        float x, y;
-        int obs_t, reward;
-        fin>>t_name>>x>>y>>obs_t>>reward;
-        target_table.push_back(new TargetInfo(t_name, EarthPos(x, y), obs_t, reward));
-    }
-    fin.close();
+
     return;
 }
 
@@ -191,20 +199,84 @@ EarthTime SatelliteInfoManagement::getTime(string s) const //传入该卫星的�
     return EarthTime(t_d, t_h, t_m, t_s, temp_time);
 }
 
-void SatelliteInfoManagement::coverCal()
+void SatelliteInfoManagement::coverCal(const int &file_num)
 {
-    vector<vector<pair<EarthTime, int>>> target1_window;
-    TargetInfo target1 = *target_table[0];
-    for (int i = 0; i < all_satellite_timetable.size(); ++i) {
-        vector<pair<EarthTime, int>> temp_vec;
-        for (int j = 0; j < all_satellite_timetable[i].size(); ++j) {
-            if (all_satellite_timetable[i][j].isInside_polygon(target1._pos)) {
-                pair<EarthTime, int> pair_tmp(getTime(j, satellite_1_starttime), j);
-                temp_vec.push_back(pair_tmp);
+    //  @target_i_window 9个卫星对一个目标的观测结果，a[i][j] 为第i个卫星对第file_num文件的第j个目标的观测窗口，其中第一个参数为转换时间，第二个是从starttime开始经过的秒数
+    
+    ofstream fout("mid_res", ios::trunc);
+    
+    
+    for (int k = 0; k < all_target_table[file_num].size(); ++k) {
+        vector<vector<pair<EarthTime, int>>> target_i_window;
+        TargetInfo target1 = all_target_table[file_num][k];
+        for (int i = 0; i < all_satellite_timetable.size(); ++i) {
+            vector<pair<EarthTime, int>> temp_vec;
+            for (int j = 0; j < all_satellite_timetable[i].size(); ++j) {
+                if (all_satellite_timetable[i][j].isInside_polygon(target1._pos)) {
+                    pair<EarthTime, int> pair_tmp(getTime(j, satellite_1_starttime), j);
+                    temp_vec.push_back(pair_tmp);
+                }
             }
+            target_i_window.push_back(temp_vec);
         }
-        target1_window.push_back(temp_vec);
+
+        
+        vector<vector<time_period>> all_satellite_window_period;
+        
+        EarthTime t_start_time;
+        for (int i = 0; i < target_i_window.size(); ++i) {
+            bool start_time_tag = 0, end_time_tag = 1;
+            vector<time_period> temp_vec;
+            if (target_i_window[i].size() == 0) {//可能存在卫星观测窗口是空的情况
+                all_satellite_window_period.push_back(vector<time_period>());
+                continue;
+            }
+            
+            for(int j = 0; j < target_i_window[i].size()-1; ++j) {
+                //连续时间记录起始和结束
+                if(target_i_window[i][j].second + 1 == target_i_window[i][j+1].second) {
+                    if (start_time_tag == 0 && end_time_tag == 1) {
+                        t_start_time = EarthTime(target_i_window[i][j].first);
+                        start_time_tag = 1;
+                        end_time_tag = 0;
+                    }
+                }
+                else {
+                    //断开了，此处应该是结束点
+                    if (start_time_tag == 1 && end_time_tag == 0) {
+                        start_time_tag = 0;
+                        end_time_tag = 1;
+                        temp_vec.push_back(time_period(t_start_time, target_i_window[i][j].first));
+                    }
+                }
+            }
+            //把结尾处理了
+//            if (target_i_window[i][target_i_window[i].size()-2].second + 1 == target_i_window[i][target_i_window[i].size()-1].second/* && target_i_window[i].size() >= 2*/) {
+                auto t_size = target_i_window[i].size();
+                temp_vec.push_back(time_period(t_start_time, target_i_window[i][t_size-1].first));
+                all_satellite_window_period.push_back(temp_vec);
+//            }
+
+        }
+        
+        if (fout.fail()) {
+            cerr<<"fali to open mid_res"<<endl;
+            exit(6);
+        }
+        fout<<"target_num:"<<k<<endl;
+        cout<<"target_num:"<<k<<endl;
+        for(int i = 0; i < all_satellite_window_period.size();++i){
+            fout<<"satellite :"<<i<<endl;
+            for (int j = 0; j < all_satellite_window_period[i].size(); ++j) {
+                if (all_satellite_window_period[i][j].first == EarthTime()/*all_satellite_window_period[i][j].second*/)
+                    break;
+                fout<<all_satellite_window_period[i][j].first<<'\t'<<all_satellite_window_period[i][j].second<<endl;
+                cout<<all_satellite_window_period[i][j].first<<'\t'<<all_satellite_window_period[i][j].second<<endl;
+                }
+            }
+        
     }
+
     
 //    //求并集
 //    sort(target1_window.begin(), target1_window.end(), tar_window_sort());
@@ -212,49 +284,16 @@ void SatelliteInfoManagement::coverCal()
 //    target1_window.erase(ite, target1_window.end());
 
     
-    vector<vector<time_period>> all_satellite_window_period;
-    
-    EarthTime t_start_time;
-    bool start_time_tag = 0, end_time_tag = 1;
-    for (int i = 0; i < target1_window.size(); ++i) {
-        vector<time_period> temp_vec;
-        for(int j = 0; j < target1_window[i].size()-1; ++j) {
-            //连续时间记录起始和结束
-            if(target1_window[i][j].second + 1 == target1_window[i][j+1].second) {
-                if (start_time_tag == 0 && end_time_tag == 1) {
-                    t_start_time = EarthTime(target1_window[i][j].first);
-                    start_time_tag = 1;
-                    end_time_tag = 0;
-                }
-            }
-            else {
-                //断开了，此处应该是结束点
-                if (start_time_tag == 1 && end_time_tag == 0) {
-                    end_time_tag = 1;
-                    start_time_tag = 0;
-                    temp_vec.push_back(time_period(t_start_time, target1_window[i][j].first));
-                }
-            }
-    //        cout<<target1_window[i].first._hours<<":"<<target1_window[i].first._minutes<<":"<<target1_window[i].first._seconds<<endl;
-        }
-        //把结尾处理了
-        auto t_size = target1_window[i].size();
-        temp_vec.push_back(time_period(t_start_time, target1_window[i][t_size-1].first));
-        all_satellite_window_period.push_back(temp_vec);
-    }
 
-    for(int i = 0; i < all_satellite_window_period.size();++i){
-        cout<<"satellite :"<<i<<endl;
-        for (int j = 0; j < all_satellite_window_period[i].size(); ++j) {
-            cout<<"起始时间："<<all_satellite_window_period[i][j].first<<"终止时间："<<all_satellite_window_period[i][j].second<<endl;
-            }
-        }
         
 }
 
 
 
-
+void SatelliteInfoManagement::calAllTargetCoverage()
+{
+    
+}
 
 
 

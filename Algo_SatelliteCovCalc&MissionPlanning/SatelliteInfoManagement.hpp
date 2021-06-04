@@ -9,6 +9,9 @@
 #define SatelliteInfoManagement_hpp
 
 #include "Header.h"
+//文件个数宏定义
+#define SATELLITE_FILE_CNT 9
+#define TARGET_FILE_CNT 9
 
 struct EarthPos{
     float _x = -1;
@@ -56,6 +59,13 @@ struct EarthTime{
     EarthTime() = default;
     EarthTime(int day, int hour, int minute, int second, string date): _day(day), _hours(hour), _minutes(minute), _seconds(second), _date(date){}
     
+    bool operator==(const EarthTime& t){
+        if (this->_date == t._date && this->_hours == t._hours && this->_minutes == t._minutes && this->_seconds == t._seconds) {
+            return true;
+        }
+        return false;
+    }
+    
     friend ostream& operator<<(ostream& co,const EarthTime& t);
 };
 struct TargetInfo{
@@ -66,6 +76,8 @@ struct TargetInfo{
     
     TargetInfo(string name, const EarthPos &p, const int &obs_t, const int &reward):target_name(name), _pos(p), observe_time(obs_t), _reward(reward){}
 };
+
+
 class SatelliteInfoManagement
 {
 private:
@@ -74,7 +86,8 @@ private:
 public:
 //    vector<SatelliteCovArea> singal_satellite_timetable;
     vector<vector<SatelliteCovArea>> all_satellite_timetable;
-    vector<TargetInfo*> target_table;
+//    vector<TargetInfo> target_table;
+    vector<vector<TargetInfo>> all_target_table;
     
 public:
     void readSatInfoFile();
@@ -84,7 +97,8 @@ public:
     EarthTime getTime(const int& cnt, const EarthTime& start_time) const;//传入该卫星的起始观察时间和第几秒观察反推出目前时间
     EarthTime getTime(string s) const;//传入该卫星的时间字符串返回一个Earthtime数据结构
     
-    void coverCal();
+    void coverCal(const int &file_num);
+    void calAllTargetCoverage();
     void _signalCov();
     void _doubleCov();
     //test

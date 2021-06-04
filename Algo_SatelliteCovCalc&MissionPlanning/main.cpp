@@ -15,6 +15,6 @@ int main(int argc, const char * argv[]) {
     m.readTarInfoFile();
 //    m.getTime(3601, m.satellite_1_starttime);
     cout<<endl<<m.all_satellite_timetable[0][0].isInside_polygon(EarthPos(260, 3))<<endl;
-    m.coverCal();
+    m.coverCal(0);
     return 0;
 }
