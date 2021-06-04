@@ -9,7 +9,7 @@
 
 //全局函数
 ostream& operator<<(ostream& co,const EarthTime& t) {
-    co<<t._day<<' '<<t._hours<<":"<<t._minutes<<":"<<t._seconds;
+    co<<t._hours<<":"<<t._minutes<<":"<<t._seconds;
     return co;
 }
 
@@ -98,10 +98,10 @@ void SatelliteInfoManagement::readSatInfoFile()
             }
             temp.push_back(SatelliteCovArea());
             for (int i = 0 ; i < 21; ++i) {
-                float pos_x, pos_y;
+                double pos_x, pos_y;
                 fin>>pos_x>>pos_y;
                 (*(temp.end()-1)).polygon_pos.push_back(EarthPos(pos_x, pos_y));
-                (*(temp.end()-1)).ini();
+//                (*(temp.end()-1)).ini();
             }
             getline(fin, s);
         }
@@ -127,7 +127,7 @@ void SatelliteInfoManagement::readTarInfoFile()
         vector<TargetInfo> tmp_vec;
         while (!fin.eof()) {
             string t_name;
-            float x, y;
+            double x, y;
             int obs_t, reward;
             fin>>t_name>>x>>y>>obs_t>>reward;
             tmp_vec.push_back(TargetInfo(t_name, EarthPos(x, y), obs_t, reward));
@@ -241,9 +241,9 @@ void SatelliteInfoManagement::coverCal(const int &file_num)
 
 void SatelliteInfoManagement::_saveEverySateObsWindow(vector<vector<pair<EarthTime, int>>>& target_i_window,ofstream &fout, const int &target_num)
 {
-//  @every_satellite_window_period 是9个卫星对一个目标的观测时间段窗口，a[i][j] 为第i个卫星对第file_num的target文件的第k个目标的观测窗口，其中第一个参数为起始时间，第二个是结束时间
-vector<vector<time_period>> every_satellite_window_period;
-EarthTime t_start_time;
+    //  @every_satellite_window_period 是9个卫星对一个目标的观测时间段窗口，a[i][j] 为第i个卫星对第file_num的target文件的第k个目标的观测窗口，其中第一个参数为起始时间，第二个是结束时间
+    vector<vector<time_period>> every_satellite_window_period;
+    int t_start_time;
     for (int i = 0; i < target_i_window.size(); ++i) {
         bool start_time_tag = 0, end_time_tag = 1;
         vector<time_period> temp_vec;
@@ -254,9 +254,9 @@ EarthTime t_start_time;
         
         for(int j = 0; j < target_i_window[i].size()-1; ++j) {
             //连续时间记录起始和结束
-            if(target_i_window[i][j].second + 1 == target_i_window[i][j+1].second) {
+            if(target_i_window[i][j+1].second - target_i_window[i][j].second <= 3) {
                 if (start_time_tag == 0 && end_time_tag == 1) {
-                    t_start_time = EarthTime(target_i_window[i][j].first);
+                    t_start_time = target_i_window[i][j].second;
                     start_time_tag = 1;
                     end_time_tag = 0;
                 }
@@ -266,13 +266,13 @@ EarthTime t_start_time;
                 if (start_time_tag == 1 && end_time_tag == 0) {
                     start_time_tag = 0;
                     end_time_tag = 1;
-                    temp_vec.push_back(time_period(t_start_time, target_i_window[i][j].first));
+                    temp_vec.push_back(time_period(t_start_time, target_i_window[i][j].second));
                 }
             }
         }
         //把结尾处理了
         auto t_size = target_i_window[i].size();
-        temp_vec.push_back(time_period(t_start_time, target_i_window[i][t_size-1].first));
+        temp_vec.push_back(time_period(t_start_time, target_i_window[i][t_size-1].second));
         every_satellite_window_period.push_back(temp_vec);
     }
 
@@ -284,9 +284,10 @@ EarthTime t_start_time;
     for(int i = 0; i < every_satellite_window_period.size();++i){
         fout<<"satellite:"<<i<<endl;
         for (int j = 0; j < every_satellite_window_period[i].size(); ++j) {
-            if (every_satellite_window_period[i][j].first == EarthTime())
+            if (every_satellite_window_period[i][j].first == 0)
                 break;
-            fout<<every_satellite_window_period[i][j].first<<'\t'<<every_satellite_window_period[i][j].second<<endl;
+//            fout<<every_satellite_window_period[i][j].first<<'\t'<<every_satellite_window_period[i][j].second<<endl;
+            fout<<getTime(every_satellite_window_period[i][j].first, satellite_1_starttime)<<"      "<<getTime(every_satellite_window_period[i][j].second, satellite_1_starttime)<<endl;
         }
     }
 }
@@ -306,14 +307,14 @@ void SatelliteInfoManagement::_signalCov(vector<pair<EarthTime, int>> target_i_w
     
     
     vector<time_period> all_satellite_window_period;//所有卫星并集的时间段求
-    EarthTime t_start_time;
+    int t_start_time;
     bool start_time_tag = 0, end_time_tag = 1;
             
     for(int j = 0; j < target_i_window_of_all_sat.size()-1; ++j) {
         //连续时间记录起始和结束
         if(target_i_window_of_all_sat[j].second + 1 == target_i_window_of_all_sat[j+1].second) {
             if (start_time_tag == 0 && end_time_tag == 1) {
-                t_start_time = EarthTime(target_i_window_of_all_sat[j].first);
+                t_start_time = target_i_window_of_all_sat[j].second;
                 start_time_tag = 1;
                 end_time_tag = 0;
             }
@@ -323,13 +324,13 @@ void SatelliteInfoManagement::_signalCov(vector<pair<EarthTime, int>> target_i_w
             if (start_time_tag == 1 && end_time_tag == 0) {
                 start_time_tag = 0;
                 end_time_tag = 1;
-                all_satellite_window_period.push_back(time_period(t_start_time, target_i_window_of_all_sat[j].first));
+                all_satellite_window_period.push_back(time_period(t_start_time, target_i_window_of_all_sat[j].second));
             }
         }
     }
     //把结尾处理了
     auto t_size = target_i_window_of_all_sat.size();
-    all_satellite_window_period.push_back(time_period(t_start_time, target_i_window_of_all_sat[t_size-1].first));
+    all_satellite_window_period.push_back(time_period(t_start_time, target_i_window_of_all_sat[t_size-1].second));
 
     if (fout.fail()) {
         cerr<<"fali to open mid_res"<<endl;
@@ -338,7 +339,8 @@ void SatelliteInfoManagement::_signalCov(vector<pair<EarthTime, int>> target_i_w
     fout<<"target_num:"<<target_num<<endl;
         
     for (int j = 0; j < all_satellite_window_period.size(); ++j) {
-        fout<<all_satellite_window_period[j].first<<'\t'<<all_satellite_window_period[j].second<<endl;
+        fout<<getTime(all_satellite_window_period[j].first, satellite_1_starttime)<<"      "<<getTime(all_satellite_window_period[j].second, satellite_1_starttime)<<endl;
+//        fout<<all_satellite_window_period[j].first<<'\t'<<all_satellite_window_period[j].second<<endl;
     }
     
 }
@@ -352,50 +354,50 @@ void SatelliteInfoManagement::_doubleCov(const int &file_num)
 
 //SatelliteCovArea
 
-void SatelliteCovArea::_findMaxMin(float &max_x, float &min_x, float &max_y, float &min_y) const
-{
-    max_x = min_x = polygon_pos[0]._x;
-    max_y = min_y = polygon_pos[0]._y;
-    for (int i = 1; i < polygon_pos.size(); ++i) {
-        if(polygon_pos[i]._x > max_x)
-            max_x = polygon_pos[i]._x;
-        else if(polygon_pos[i]._x < min_x)
-            min_x = polygon_pos[i]._x;
-        if(polygon_pos[i]._y > max_y)
-            max_y = polygon_pos[i]._y;
-        else if(polygon_pos[i]._y < min_y)
-            min_y = polygon_pos[i]._y;
-    }
-    return;
-}
-void SatelliteCovArea::_getCircle()
-{
-    //??
-}
-void SatelliteCovArea::_getBoundary()
-{
-    float xmax,xmin,ymax,ymin;
-    _findMaxMin(xmax, xmin, ymax, ymin);
+//void SatelliteCovArea::_findMaxMin(float &max_x, float &min_x, float &max_y, float &min_y) const
+//{
+//    max_x = min_x = polygon_pos[0]._x;
+//    max_y = min_y = polygon_pos[0]._y;
+//    for (int i = 1; i < polygon_pos.size(); ++i) {
+//        if(polygon_pos[i]._x > max_x)
+//            max_x = polygon_pos[i]._x;
+//        else if(polygon_pos[i]._x < min_x)
+//            min_x = polygon_pos[i]._x;
+//        if(polygon_pos[i]._y > max_y)
+//            max_y = polygon_pos[i]._y;
+//        else if(polygon_pos[i]._y < min_y)
+//            min_y = polygon_pos[i]._y;
+//    }
+//    return;
+//}
+//void SatelliteCovArea::_getCircle()
+//{
+//    //??
+//}
+//void SatelliteCovArea::_getBoundary()
+//{
+//    float xmax,xmin,ymax,ymin;
+//    _findMaxMin(xmax, xmin, ymax, ymin);
     //求出矩形
-    rec_boundary = Rectangle(xmax,xmin, ymax, ymin);
+//    rec_boundary = Rectangle(xmax,xmin, ymax, ymin);
     
     //求出圆形
-    circle_center._x = (xmax + xmin) / 2;
-    circle_center._y = (ymax + ymin) / 2;
-    circle_radius =  xmax - circle_center._x;
-}
-
-//EarthTime
+//    circle_center._x = (xmax + xmin) / 2;
+//    circle_center._y = (ymax + ymin) / 2;
+//    circle_radius =  xmax - circle_center._x;
+//}
 
 
-void SatelliteCovArea::ini()
-{
-    if (polygon_pos.size() == 0) {
-        cerr<<"didnt ini polygon_pos vector"<<endl;
-        exit(2);
-    }
-    _getBoundary();
-}
+
+//
+//void SatelliteCovArea::ini()
+//{
+//    if (polygon_pos.size() == 0) {
+//        cerr<<"didnt ini polygon_pos vector"<<endl;
+//        exit(2);
+//    }
+//    _getBoundary();
+//}
 
 bool SatelliteCovArea::isInside_polygon(const EarthPos &p) const
 {
@@ -424,12 +426,12 @@ bool SatelliteCovArea::isInside_polygon(const EarthPos &p) const
     }
     return true;
 }
-
-bool SatelliteCovArea::isInside_circle(const EarthPos &p) const
-{
-    float t = pow(p._x - this->circle_center._x, 2) + pow(p._y - this->circle_center._y, 2);
-    if (t < pow(this->circle_radius, 2)) {
-        return true;
-    }
-    return false;
-}
+//
+//bool SatelliteCovArea::isInside_circle(const EarthPos &p) const
+//{
+//    float t = pow(p._x - this->circle_center._x, 2) + pow(p._y - this->circle_center._y, 2);
+//    if (t < pow(this->circle_radius, 2)) {
+//        return true;
+//    }
+//    return false;
+//}

@@ -15,20 +15,20 @@ struct EarthPos{
     EarthPos() = default;
     EarthPos(float x, float y):_x(x), _y(y){}
 };
-struct Rectangle {
-    EarthPos left_up;
-    EarthPos right_up;
-    EarthPos left_down;
-    EarthPos right_down;
-    Rectangle(const float &max_x, const float &min_x, const float &max_y, const float &min_y)
-    {
-        left_up = EarthPos(min_x, max_y);
-        right_up = EarthPos(max_x, max_y);
-        left_down = EarthPos(min_x, min_y);
-        right_down = EarthPos(max_x, min_y);
-    }
-    Rectangle() = default;
-};
+//struct Rectangle {
+//    EarthPos left_up;
+//    EarthPos right_up;
+//    EarthPos left_down;
+//    EarthPos right_down;
+//    Rectangle(const float &max_x, const float &min_x, const float &max_y, const float &min_y)
+//    {
+//        left_up = EarthPos(min_x, max_y);
+//        right_up = EarthPos(max_x, max_y);
+//        left_down = EarthPos(min_x, min_y);
+//        right_down = EarthPos(max_x, min_y);
+//    }
+//    Rectangle() = default;
+//};
 
 
 struct EarthTime{
@@ -40,12 +40,12 @@ struct EarthTime{
     EarthTime() = default;
     EarthTime(int day, int hour, int minute, int second, string date): _day(day), _hours(hour), _minutes(minute), _seconds(second), _date(date){}
     
-    bool operator==(const EarthTime& t){
-        if (this->_date == t._date && this->_hours == t._hours && this->_minutes == t._minutes && this->_seconds == t._seconds) {
-            return true;
-        }
-        return false;
-    }
+//    bool operator==(const EarthTime& t){
+//        if (this->_date == t._date && this->_hours == t._hours && this->_minutes == t._minutes && this->_seconds == t._seconds) {
+//            return true;
+//        }
+//        return false;
+//    }
     
     friend ostream& operator<<(ostream& co,const EarthTime& t);
 };
