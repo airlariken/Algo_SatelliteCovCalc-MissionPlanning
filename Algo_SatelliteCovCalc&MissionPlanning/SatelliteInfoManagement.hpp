@@ -35,6 +35,8 @@ class SatelliteInfoManagement
 {
 private:
     typedef pair<int, int> time_period;
+//    typedef bool my_mutex;
+//    my_mutex mutex_uncover_cal = 0;
 //private:
 public:
     vector<vector<SatelliteCovArea>> all_satellite_timetable;
@@ -51,12 +53,14 @@ public:
     
     void coverCal(const int &file_num = 1);
     void calAllTargetCoverage();
-    void _saveEverySateObsWindow(vector<vector<pair<EarthTime, int>>>& target_i_window, ofstream &fout, const int &target_num);
-    void _signalCov(vector<pair<EarthTime, int>> target_i_window_of_all_sat, ofstream &fout, const int &target_num);
-    void _doubleCov(const int &file_num = 1);
-    void _combine_coverage();//求所有卫星对单个target时间窗口的并集
+    void _saveEverySateObsWindow(vector<vector<pair<EarthTime, int>>>& target_i_window, ofstream &fout, const int &target_num);//
+    void _combineCov(vector<pair<EarthTime, int>> target_i_window_of_all_sat, ofstream &fout, const int &target_num, const int &file_num);//合并覆盖窗口
+    inline void _doubleCov(set<int> &target_k_double_cov_windows, ofstream &fout, const int &target_num);//二重或以上覆盖窗口
+    void _calUncoverSegement(const vector<time_period> &all_satellite_window_period, const int &file_num, const int &target_num);//计算时间窗口
+//    void _combine_coverage();//求所有卫星对单个target时间窗口的并集
     //test
     EarthTime satellite_1_starttime;
+    int satellite_1_duration_time;
 };
 
 

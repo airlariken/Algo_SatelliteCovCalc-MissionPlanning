@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		582CCE3C266B910400474085 /* SatelliteSchedulePlanning.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 582CCE3A266B910400474085 /* SatelliteSchedulePlanning.cpp */; };
 		585E47792667101000E91DEB /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 585E47782667101000E91DEB /* main.cpp */; };
 		585E47822667108D00E91DEB /* SatelliteInfoManagement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 585E47802667108D00E91DEB /* SatelliteInfoManagement.cpp */; };
 /* End PBXBuildFile section */
@@ -25,6 +26,8 @@
 
 /* Begin PBXFileReference section */
 		5818CA3C266A5C6F00E7E400 /* AllKindOfStruct.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AllKindOfStruct.h; sourceTree = "<group>"; };
+		582CCE3A266B910400474085 /* SatelliteSchedulePlanning.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SatelliteSchedulePlanning.cpp; sourceTree = "<group>"; };
+		582CCE3B266B910400474085 /* SatelliteSchedulePlanning.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = SatelliteSchedulePlanning.hpp; sourceTree = "<group>"; };
 		585E47752667101000E91DEB /* Algo_SatelliteCovCalc&MissionPlanning */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "Algo_SatelliteCovCalc&MissionPlanning"; sourceTree = BUILT_PRODUCTS_DIR; };
 		585E47782667101000E91DEB /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		585E47802667108D00E91DEB /* SatelliteInfoManagement.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SatelliteInfoManagement.cpp; sourceTree = "<group>"; };
@@ -65,6 +68,7 @@
 			children = (
 				585E47782667101000E91DEB /* main.cpp */,
 				585E47802667108D00E91DEB /* SatelliteInfoManagement.cpp */,
+				582CCE3A266B910400474085 /* SatelliteSchedulePlanning.cpp */,
 				586050BD266A4EB900677745 /* Readme.md */,
 				5888EB06266A5F7900298E1D /* include */,
 			);
@@ -75,8 +79,9 @@
 			isa = PBXGroup;
 			children = (
 				585E4784266710B000E91DEB /* Header.h */,
-				585E47812667108D00E91DEB /* SatelliteInfoManagement.hpp */,
 				5818CA3C266A5C6F00E7E400 /* AllKindOfStruct.h */,
+				585E47812667108D00E91DEB /* SatelliteInfoManagement.hpp */,
+				582CCE3B266B910400474085 /* SatelliteSchedulePlanning.hpp */,
 			);
 			name = include;
 			sourceTree = "<group>";
@@ -139,6 +144,7 @@
 			files = (
 				585E47822667108D00E91DEB /* SatelliteInfoManagement.cpp in Sources */,
 				585E47792667101000E91DEB /* main.cpp in Sources */,
+				582CCE3C266B910400474085 /* SatelliteSchedulePlanning.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

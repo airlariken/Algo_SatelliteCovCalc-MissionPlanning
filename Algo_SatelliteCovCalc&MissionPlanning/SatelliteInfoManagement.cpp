@@ -111,6 +111,8 @@ void SatelliteInfoManagement::readSatInfoFile()
     //    cout<<"test size"<<satellite_timetable.size()<<endl;
         fin.close();
         all_satellite_timetable.push_back(temp);
+        satellite_1_duration_time = (int)temp.size();
+//        cout<<satellite_1_duration_time<<endl;
     }
     return;
 }
@@ -132,6 +134,9 @@ void SatelliteInfoManagement::readTarInfoFile()
             double x, y;
             int obs_t, reward;
             fin>>t_name>>x>>y>>obs_t>>reward;
+            if (x < 0) {            //统一到卫星经度表示
+                x += 360;
+            }
             tmp_vec.push_back(TargetInfo(t_name, EarthPos(x, y), obs_t, reward));
         }
         all_target_table.push_back(tmp_vec);
@@ -204,23 +209,42 @@ EarthTime SatelliteInfoManagement::getTime(string s) const //传入该卫星的�
     return EarthTime(t_d, t_h, t_m, t_s, temp_time);
 }
 
-void SatelliteInfoManagement::coverCal(const int &file_num)
+void SatelliteInfoManagement::coverCal(const int &file_num)//传入文件的index,index见所给文件名
 {
-    //  @target_i_window 9个卫星对一个目标的观测结果，a[i][j] 为第i个卫星对第file_num文件的第j个目标的观测窗口，其中第一个参数为转换时间，第二个是从starttime开始经过的秒数
+    //  @variable   target_i_window 9个卫星对一个目标的观测结果，a[i][j] 为第i个卫星对第file_num文件的第j个目标的观测窗口，其中第一个参数为转换时间，第二个是从starttime开始经过的秒数
+    //  @variable   target_i_window_of_all_sat 所有卫星时间窗口一起存，去重后就是并集 所有点在多边形内的时刻都会被push进去，a[i]没有实际意义
+    //  @variable   _target_i_double_cov_windows_set  用于检测二重覆盖窗口的集合
+    //  @variable   target_i_double_cov_windows    存储二重覆盖窗口
     string path = "mid_res";
     char a= file_num + '0';
     path.push_back(a);  path.insert(path.length(), ".txt");
     ofstream fout(path, ios::trunc);
     
-    string path2 = "singal_cov_res";
+    string path2 = "combine_cov_res";
     char a2= file_num + '0';
     path2.push_back(a2);  path2.insert(path2.length(), ".txt");
     ofstream fout2(path2, ios::trunc);
     
+    string path3 = "double_cov_res";
+    char a3 = file_num + '0';
+    path3.push_back(a3);  path3.insert(path3.length(), ".txt");
+    ofstream fout3(path3, ios::trunc);
+    
+    string path4 = "uncov_res";
+    char a4= file_num + '0';
+    path4.push_back(a4);  path4.insert(path4.length(), ".txt");
+    ofstream fout4(path4, ios::trunc);
+    fout4.close();
+
+    
     for (int k = 0; k < all_target_table[file_num].size(); ++k) {
-        vector<vector<pair<EarthTime, int>>> target_i_window;//存单个文星
-        vector<pair<EarthTime, int>> target_i_window_of_all_sat;//所有卫星一起存
-        target_i_window_of_all_sat.reserve(10000);
+        vector<vector<pair<EarthTime, int>>> target_k_window;//存单个卫星
+        vector<pair<EarthTime, int>> target_k_window_of_all_sat;//所有卫星一起存
+        set<int> __AUX_target_k_double_cov_windows;//用于检测二重覆盖窗口的集合
+        set<int> target_k_double_cov_windows;//存储二重覆盖窗口
+        
+        
+        target_k_window_of_all_sat.reserve(10000);
         TargetInfo target1 = all_target_table[file_num][k];
         for (int i = 0; i < all_satellite_timetable.size(); ++i) {
             vector<pair<EarthTime, int>> temp_vec;
@@ -228,14 +252,21 @@ void SatelliteInfoManagement::coverCal(const int &file_num)
                 if (all_satellite_timetable[i][j].isInside_polygon(target1._pos)) {
                     pair<EarthTime, int> pair_tmp(getTime(j, satellite_1_starttime), j);
                     temp_vec.push_back(pair_tmp);
-                    target_i_window_of_all_sat.push_back(pair_tmp);
+                    target_k_window_of_all_sat.push_back(pair_tmp);
+                    if (__AUX_target_k_double_cov_windows.count(j) == 0) {//如果set中没有j则insert
+                        __AUX_target_k_double_cov_windows.insert(j);
+                    }
+                    else{                                                       //set中至少有一个说明是至少有两个卫星覆盖，Push进double_cov中
+                        target_k_double_cov_windows.insert(j);
+                    }
                 }
             }
-            target_i_window.push_back(temp_vec);
+            target_k_window.push_back(temp_vec);
         }
 
-        _signalCov(target_i_window_of_all_sat, fout2, k);//计算所有卫星并集覆盖（单覆盖）
-        _saveEverySateObsWindow(target_i_window, fout, k);//分开计算每个卫星对目标的覆盖
+        _combineCov(target_k_window_of_all_sat, fout2, k, file_num);//计算所有卫星并集覆盖（单覆盖）
+        _saveEverySateObsWindow(target_k_window, fout, k);//分开计算每个卫星对目标的覆盖
+        _doubleCov(target_k_double_cov_windows, fout3, k);//计算二重+覆盖窗口
     }
 
         
@@ -246,6 +277,10 @@ void SatelliteInfoManagement::_saveEverySateObsWindow(vector<vector<pair<EarthTi
     //  @every_satellite_window_period 是9个卫星对一个目标的观测时间段窗口，a[i][j] 为第i个卫星对第file_num的target文件的第k个目标的观测窗口，其中第一个参数为起始时间，第二个是结束时间
     vector<vector<time_period>> every_satellite_window_period;
     int t_start_time;
+    if (target_i_window.size() == 0){
+        cerr<<"target_i_window is empty (target_num:"<<target_num<<')'<<endl;
+        return;
+    }
     for (int i = 0; i < target_i_window.size(); ++i) {
         bool start_time_tag = 0, end_time_tag = 1;
         vector<time_period> temp_vec;
@@ -300,8 +335,14 @@ void SatelliteInfoManagement::calAllTargetCoverage()
     }
 }
 
-void SatelliteInfoManagement::_signalCov(vector<pair<EarthTime, int>> target_i_window_of_all_sat, ofstream &fout, const int &target_num)
+void SatelliteInfoManagement::_combineCov(vector<pair<EarthTime, int>> target_i_window_of_all_sat, ofstream &fout, const int &target_num, const int &file_num)
 {
+    
+    if (target_i_window_of_all_sat.size() == 0){
+        cerr<<"target_i_window_of_all_sat is empty (target_num:"<<target_num<<')'<<endl;
+        return;
+    }
+    
     //求并集
     sort(target_i_window_of_all_sat.begin(), target_i_window_of_all_sat.end(), tar_window_sort());
     auto ite = unique(target_i_window_of_all_sat.begin(), target_i_window_of_all_sat.end(), tar_window_unique());
@@ -311,7 +352,6 @@ void SatelliteInfoManagement::_signalCov(vector<pair<EarthTime, int>> target_i_w
     vector<time_period> all_satellite_window_period;//所有卫星并集的时间段求
     int t_start_time;
     bool start_time_tag = 0, end_time_tag = 1;
-            
     for(int j = 0; j < target_i_window_of_all_sat.size()-1; ++j) {
         //连续时间记录起始和结束
         if(target_i_window_of_all_sat[j].second + 1 == target_i_window_of_all_sat[j+1].second) {
@@ -344,11 +384,116 @@ void SatelliteInfoManagement::_signalCov(vector<pair<EarthTime, int>> target_i_w
         fout<<getTime(all_satellite_window_period[j].first, satellite_1_starttime)<<"      "<<getTime(all_satellite_window_period[j].second, satellite_1_starttime)<<endl;
 //        fout<<all_satellite_window_period[j].first<<'\t'<<all_satellite_window_period[j].second<<endl;
     }
+//    mutex_uncover_cal = 1;//可以计算时间间隔，打开mutex
+    //直接继续计算时间间隔
+    _calUncoverSegement(all_satellite_window_period, file_num, target_num);
+}
+
+void SatelliteInfoManagement::_calUncoverSegement(const vector<time_period> &all_satellite_window_period, const int &file_num, const int &target_num)
+{
+    //由于现在改成在_combineCov函数中直接调用此函数，故无需在设置mutex
+//    if (mutex_uncover_cal == 0) {
+//        cerr<<"didnt cal fun(combineCov), unless you cal combineCov fun to cal window you will able to call this function(_calUncoverSegement)"<<endl;
+//        exit(8);
+////        return;
+//    }
+//    string path = "combine_cov_res";
+//    char a = file_num + '0';
+//    path.push_back(a);  path.insert(path.length(), ".txt");
+//    ifstream fin(path);
+//    if (fin.fail()) {
+//        cerr<<"cant open combin_cov_res file"<<endl;
+//        exit(8);
+//    }
+    
+    vector<time_period> uncover_window_period;
+    int start_time = 0;
+    bool start_time_tag = 0;
+    for (auto it = all_satellite_window_period.begin(); it != all_satellite_window_period.end(); ++it) {
+        uncover_window_period.push_back(time_period(start_time, it->first));
+        start_time_tag = 1;
+        start_time = it->second;
+    }
+    if ((all_satellite_window_period.end()-1)->second != satellite_1_duration_time) {     //只要这个覆盖窗口最后没包括卫星的结束时刻，则说明要做结尾处理
+        uncover_window_period.push_back(time_period((all_satellite_window_period.end()-1)->second, satellite_1_duration_time));
+    }
+    
+    string path = "uncov_res";
+    char a= file_num + '0';
+    path.push_back(a);  path.insert(path.length(), ".txt");
+    ofstream fout(path, ios::app);
+    if (fout.fail()) {
+        cerr<<"cant open uncov_res file"<<endl;
+        exit(8);
+    }
+    
+    //写文件的同时顺便找最大最小值
+    int max_period = 0, min_period = INT_MAX, average_period = 0;;
+    fout<<"target:"<<target_num<<endl;
+    for (auto it = uncover_window_period.begin(); it != uncover_window_period.end(); ++it) {
+        average_period += it->second- it->first;
+        if (it->second- it->first > max_period)
+            max_period = it->second- it->first;
+        if (it->second- it->first < min_period) {
+            min_period = it->second- it->first;
+        }
+        fout<<getTime(it->first, satellite_1_starttime)<<"      "<<getTime(it->second, satellite_1_starttime)<<endl;
+    }
+    
+    fout<<"max_period"<<max_period<<'\t'<<"min_period"<<min_period<<'\t'<<"average_period"<<((float)average_period/uncover_window_period.size())<<endl;
+    fout.close();
+
     
 }
-void SatelliteInfoManagement::_doubleCov(const int &file_num)
+
+void SatelliteInfoManagement::_doubleCov(set<int> &target_k_double_cov_windows, ofstream &fout, const int &target_num)
 {
+
+    if (target_k_double_cov_windows.size() == 0){
+        cerr<<"target_k_double_cov_windows is empty (target_num:"<<target_num<<')'<<endl;
+        return;
+    }
+    vector<time_period> all_satellite_window_period;//所有卫星并集的时间段求
+    int t_start_time;
+    bool start_time_tag = 0, end_time_tag = 1;
+            
+    for(auto it = target_k_double_cov_windows.begin(); it != target_k_double_cov_windows.end(); ++it) {
+        //连续时间记录起始和结束
+        if (++it == target_k_double_cov_windows.end())//如果到了倒数第一个元素则直接break做结尾处理
+            break;
+        --it;
+        if(*it + 1 == *(++it)) {
+            --it;
+            if (start_time_tag == 0 && end_time_tag == 1) {
+                t_start_time = *it;
+                start_time_tag = 1;
+                end_time_tag = 0;
+            }
+        }
+        else {
+            --it;
+            //断开了，此处应该是结束点
+            if (start_time_tag == 1 && end_time_tag == 0) {
+                start_time_tag = 0;
+                end_time_tag = 1;
+                all_satellite_window_period.push_back(time_period(t_start_time, *it));
+            }
+        }
+    }
+    //把结尾处理了
+    all_satellite_window_period.push_back(time_period(t_start_time, *(--target_k_double_cov_windows.end())));
     
+    if (fout.fail()) {
+        cerr<<"fali to open double_cov file"<<endl;
+        exit(7);
+    }
+    fout<<"target_num:"<<target_num<<endl;
+        
+    for (int j = 0; j < all_satellite_window_period.size(); ++j) {
+        fout<<getTime(all_satellite_window_period[j].first, satellite_1_starttime)<<"      "<<getTime(all_satellite_window_period[j].second, satellite_1_starttime)<<endl;
+//        fout<<all_satellite_window_period[j].first<<'\t'<<all_satellite_window_period[j].second<<endl;
+    }
+
 }
 
 
