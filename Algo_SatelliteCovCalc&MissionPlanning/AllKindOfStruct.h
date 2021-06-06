@@ -49,6 +49,9 @@ struct EarthTime{
     
     friend ostream& operator<<(ostream& co,const EarthTime& t);
 };
+
+typedef pair<int, int> time_period;
+
 struct TargetInfo{
     string target_name;
     EarthPos _pos;

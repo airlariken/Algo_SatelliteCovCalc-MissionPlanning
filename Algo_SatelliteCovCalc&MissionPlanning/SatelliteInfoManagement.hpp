@@ -33,8 +33,8 @@ struct SatelliteCovArea{
 
 class SatelliteInfoManagement
 {
-private:
-    typedef pair<int, int> time_period;
+public:
+    
 //    typedef bool my_mutex;
 //    my_mutex mutex_uncover_cal = 0;
 //private:

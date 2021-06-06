@@ -15,6 +15,7 @@
 #include <cmath> //fabs double的绝对值
 #include <map>
 #include <set>
+#include <list>
 using namespace std;
 
 #endif /* Header_h */

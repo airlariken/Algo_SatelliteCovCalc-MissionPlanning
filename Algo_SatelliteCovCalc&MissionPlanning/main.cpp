@@ -9,15 +9,22 @@
 
 int main(int argc, const char * argv[]) {
     
-    SatelliteInfoManagement m;
-
-    m.readSatInfoFile();
-    m.readTarInfoFile();
-//    cout<<m.all_satellite_timetable[0][43357].isInside_polygon(m.all_target_table[0][0]._pos)<<endl;
-//    cout<<m.all_satellite_timetable[0][43357].isInside_polygon(EarthPos(255, 10))<<endl;
     
-//    cout<<endl<<m.all_satellite_timetable[0][0].isInside_polygon(EarthPos(260, 3))<<endl;
-    m.coverCal(0);
-//    m.calAllTargetCoverage();
+//    //第一问部分
+//    SatelliteInfoManagement m;
+//
+//    m.readSatInfoFile();
+//    m.readTarInfoFile();
+////    cout<<m.all_satellite_timetable[0][43357].isInside_polygon(m.all_target_table[0][0]._pos)<<endl;
+////    cout<<m.all_satellite_timetable[0][43357].isInside_polygon(EarthPos(255, 10))<<endl;
+//
+////    cout<<endl<<m.all_satellite_timetable[0][0].isInside_polygon(EarthPos(260, 3))<<endl;
+//    m.coverCal(0);
+////    m.calAllTargetCoverage();
+    
+    
+    //第二问部分
+    SatelliteSchedulePlanning p;
+    p.readSatCovWinFile(0);
     return 0;
 }
