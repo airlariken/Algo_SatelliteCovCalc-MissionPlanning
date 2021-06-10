@@ -6,15 +6,6 @@
 //
 
 #include "SatelliteSchedulePlanning.hpp"
-void SatelliteSchedulePlanning::ini_clear()
-{
-    every_satellite_cov_window.clear();
-    every_satellite_cov_window.resize(SATELLITE_FILE_CNT);
-    targetname_to_info.clear();
-    all_targets_table.clear();
-    scheduled_targets.clear();
-}
-
 
 void SatelliteSchedulePlanning::readSatCovWinFile(const int &file_num)
 {
@@ -91,12 +82,72 @@ void SatelliteSchedulePlanning::readTarInfoFile(const int &file_num)
 }
 void SatelliteSchedulePlanning::readAllSatCovWinFiles()
 {
-    for (int i = 0; i < SATELLITE_FILE_CNT; ++i){
+    for (int i = 0; i < SATELLITE_FILE_CNT; ++i) {
         readSatCovWinFile(i);
     }
 }
 void SatelliteSchedulePlanning::greedyAlgo()
 {
-    
+    //贪心选择：按照收益/时间的大小进行排序，在可行时间段中按该顺序选择target进行观测，直到该区间无法再加入新的目标观测为止
 }
+
+void SatelliteSchedulePlanning::_preprocessing()
+{
+    //对于一个卫星
+    //如果某一个观察窗口的长度小于该target所需观察时间，直接删除
+    for (auto it1 = every_satellite_cov_window.begin(); it1 != every_satellite_cov_window.end(); ++it1) {
+        for (auto it2 = it1->begin(); it2 != it1->end(); ++it2) {
+            for (auto it3 = it2->begin(); it3 != it2->end(); ++it3) {
+                if (getDuration(*it3) < getDuration(all_targets_table[it2-it1->begin()].scheduled_time))
+                    it3 = it2->erase(it3);
+            }
+        }
+    }
+    
+    //处理好只有单目标的覆盖并且在该覆盖时间内能解决问题的情况，如果target观测完成，则将该target的is_scheduled置为1，以后不会在访问该target任何信息
+    for (auto it1 = every_satellite_cov_window.begin(); it1 != every_satellite_cov_window.end(); ++it1) {
+        for (auto it2 = it1->begin(); it2 != it1->end(); ++it2) {
+            if (all_targets_table[it2-it1->begin()].is_scheduled == 1)      //target的is_scheduled为1，则不会在访问该target任何信息
+                continue;
+            for (auto it3 = it2->begin(); it3 != it2->end(); ++it3) {
+                if (getDuration(*it3) >= getDuration(all_targets_table[it2-it1->begin()].scheduled_time) + satellite_handling_time[it1-every_satellite_cov_window.begin()]) {
+                    TargetScheduleInfo cur = all_targets_table[it2-it1->begin()];
+                    cur.is_scheduled = 1;
+                    scheduled_targets.push_back(cur);
+                }
+            }
+        }
+    }
+    
+    //将单个卫星的所有观测窗口合并，但要保留时间窗口的起点和终点，方便后续检测和处理
+   
+    for (auto it1 = every_satellite_cov_window.begin(); it1 != every_satellite_cov_window.end(); ++it1) {
+        AllTimeIntervals tmp_sate_feasible_time_interval;//对一个卫星的所有可行时间片汇总
+        for (auto it2 = it1->begin(); it2 != it1->end(); ++it2) {
+            if (all_targets_table[it2-it1->begin()].is_scheduled == 1)      //target的is_scheduled为1，则不会在访问该target任何信息
+                continue;
+            for (auto it3 = it2->begin(); it3 != it2->end(); ++it3) {
+                tmp_sate_feasible_time_interval.addTimeWindow(*it3);
+            }
+        }
+        all_sate_feasible_time_interval.push_back(tmp_sate_feasible_time_interval);
+    }
+
+    //对于卫星的可用时间段（内部可能包含许多重叠的目标观测时间窗口），不断的循环处理头尾，如果能分配则分配，直到无法直接分配为止。
+    
+    for (auto it1 = all_sate_feasible_time_interval.begin(); it1 != all_sate_feasible_time_interval.end(); ++it1) {
+        for (auto it2 = it1->time_interval_table.begin(); it2 != it1->time_interval_table.end(); ++it2) {
+            _preprocessInterativlyRemove(*it2);
+        }
+    }
+}
+void SatelliteSchedulePlanning::_preprocessInterativlyRemove(TimeInterval &itrv)
+{
+//    bool front_can_interative = 1, back_can_interative = 1;
+//    while (1) {
+//        auto it = find_if(itrv.time_pieces.begin(), itrv.time_pieces.end(), time_piece_is_feasible_pred());             //找到第一个不为disabled的对象
+//    }
+}
+
+
 
