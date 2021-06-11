@@ -26,5 +26,8 @@ int main(int argc, const char * argv[]) {
     //第二问部分
     SatelliteSchedulePlanning p;
     p.readSatCovWinFile(0);
+    p.readTarInfoFile(1);
+//    p._preprocessing(vector<bool>{1,0,0,0,0,0,1,0,0});
+    p._preprocessing();
     return 0;
 }

@@ -18,45 +18,96 @@ struct TargetScheduleInfo: public TargetInfo {
     TargetScheduleInfo(string name, const EarthPos &p, const int &obs_t, const int &reward):TargetInfo(name, p, obs_t, reward), remaining_time(obs_t){}
 };
 
-enum time_piece_set
-{
-    FeasibleTimeInterval, DisabledTimeInterval, Back
-};
+//enum time_piece_set
+//{
+//    FeasibleTimeInterval, DisabledTimeInterval, Back
+//};
 //enum time_window_set
 //{
 //
 //}
-
-struct TimeInterval
-{
-    map<int, time_piece_set>time_pieces;//每个int都是切成片的时间段,第二个是标记该时间段的种类
-    bool isInsideInterval(const time_period &p){
-        if (p.first >= time_pieces.begin()->first || p.second <= (--time_pieces.end())->first) {
-            time_pieces.insert(pair<int, time_piece_set>(p.first, FeasibleTimeInterval));
-            time_pieces.insert(pair<int, time_piece_set>(p.second, FeasibleTimeInterval));
-            if (p.second == (--time_pieces.end())->first) {     //如果p.second是当前interval的最后一个，则置为back,并把原来的back置为feasible
-                (--(--time_pieces.end()))->second = FeasibleTimeInterval;
-                (--time_pieces.end())->second = Back;
+struct TimePieceInfo{                           //按秒存时间片。。。
+    int conflict_cnt = 0;
+    set<int> target_num_table;                  //记录该s内的target下标
+    TimePieceInfo(const int &target_num){target_num_table.insert(target_num);}
+    set<int> find_difference(const TimePieceInfo & TPI) {   //给定这一秒和下一秒的时间片，下一秒的时间片增加的target就是该target开始的时间位置
+        set<int> tmp_set;
+        for (auto it1 = target_num_table.begin(); it1 != target_num_table.end(); ++it1) {
+            if (TPI.target_num_table.find(*it1) == TPI.target_num_table.end()) {
+                tmp_set.insert(*it1);
             }
-            return true;
         }
-        return false;
-    }
-    void outputIntervals(){
-        for (auto it = time_pieces.begin(); it != time_pieces.end(); ++it) {
-            cout<<it->first<<'\t'<<it->second<<endl;
+        for (auto it1 = TPI.target_num_table.begin(); it1 != TPI.target_num_table.end(); ++it1) {
+            if (target_num_table.find(*it1) == TPI.target_num_table.end()) {
+                tmp_set.insert(*it1);
+            }
         }
+        return tmp_set;
     }
 };
-struct AllTimeIntervals         //多个时间段拼在一起
+struct TimeInterval
 {
-    vector<TimeInterval> time_interval_table;
-    inline void addTimeWindow(const time_period &p);
+    map<int, TimePieceInfo> time_pieces;//每个int都是切成片的时间段,第二个是标记该时间段的种类
+    void insertTimeInterval(const time_period &p, const int& target_num){
+        for (int i = 0; i < p.second - p.first; ++i) {
+            auto fi = time_pieces.find(p.first+i);
+            if (fi != time_pieces.end()) {
+                ++fi->second.conflict_cnt;
+                fi->second.target_num_table.insert(target_num);
+            }
+            else
+                time_pieces.insert(pair<int, TimePieceInfo>(p.first+i, TimePieceInfo(target_num)));
+        }
+    }
+
+};
+struct feasibleTimeIntervals
+{
+    TimeInterval TI;
+    vector<map<int, TimePieceInfo>> feasibleTimeIntervals_table;
+    void dividedInterval(){
+        __aux_dividedInterval(TI.time_pieces.begin());
+    }
+    void __aux_dividedInterval(map<int, TimePieceInfo>::iterator it) {
+        feasibleTimeIntervals_table.push_back(map<int, TimePieceInfo>());
+        for (; it != TI.time_pieces.end(); ++it) {
+            auto tempit = it;   ++tempit;//往前看一个
+            if (tempit == TI.time_pieces.end()) {
+                (--feasibleTimeIntervals_table.end())->insert(*it);
+                return;                                          //递归出口
+            }
+            if (tempit->first == it->first+1) {             //意味着从这里断开了
+                //就从这里开始拷贝数据,拷贝结束位置下一个是不为+1递增的地方
+                (--feasibleTimeIntervals_table.end())->insert(*it);
+            }
+            else{
+                //recursive call fun
+                __aux_dividedInterval(++it);
+            }
+        }
+    }
+    
+    static time_period findNextNoConflictTimePeriod(const map<int, TimePieceInfo> &m, map<int, TimePieceInfo>::iterator& it, int &target_num) {
+        bool start_tag=0;
+        time_period t_p;
+        for (; it != m.end(); ++it) {
+            if (start_tag == 0 && it->second.conflict_cnt == 0) {
+                start_tag = 1;
+                t_p.first = it->first;
+                target_num = *(it->second.target_num_table.begin());
+            }
+            if (start_tag == 1 && it->second.conflict_cnt != 0) {
+                t_p.second = it->first;
+                return t_p;
+            }
+        }
+        return time_period(-1,-1);
+    }
 };
 class SatelliteSchedulePlanning
 {
 private:
-    vector<AllTimeIntervals> all_sate_feasible_time_interval;
+    vector<feasibleTimeIntervals> all_sate_feasible_time_interval;
     vector<int>satellite_handling_time;
 public:
     vector<vector<vector<time_period>>> every_satellite_cov_window;
@@ -79,9 +130,10 @@ public:
     bool _isSingleTarget(const int & sate_num, const int &target_num, const int &cnt_seconds);  //判定该target在该时间窗口是否一直是单覆盖
     inline bool _secondIsInTimeperiod(const time_period &p, const int &cnt_seconds);
     
-    void greedyAlgo();
-    void _preprocessing();
-    void _preprocessInterativlyRemove(TimeInterval & itrv);
+    void algoChoiceAndSatAct();
+    void greedyAlgo(vector<bool> activated_sat = {1,1,1,1,1,1,1,1,1});
+    void _preprocessing(vector<bool> activated_sat = {1,1,1,1,1,1,1,1,1});
+    void _preprocessInterativlyRemove();
 //    void _combineTimePeriod();
 };
 
@@ -120,24 +172,8 @@ inline bool SatelliteSchedulePlanning::_secondIsInTimeperiod(const time_period &
 
 
 
-inline void AllTimeIntervals::addTimeWindow(const time_period &p)
-{
-    for (auto it = time_interval_table.begin(); it != time_interval_table.end(); ++it) {
-        if (it->isInsideInterval(p)) {
-            break;
-        }
-    }
-}
 
 
 
 
-
-
-//pred
-struct time_piece_is_feasible_pred{
-    bool operator()(const pair<int, time_piece_set> &piece){
-        return piece.second == FeasibleTimeInterval;
-    }
-};
 #endif /* SatelliteSchedulePlanning_hpp */
