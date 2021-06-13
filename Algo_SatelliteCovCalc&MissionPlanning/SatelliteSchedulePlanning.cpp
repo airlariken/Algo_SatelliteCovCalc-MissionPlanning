@@ -135,6 +135,8 @@ void SatelliteSchedulePlanning::_preprocessing(vector<bool> activated_sat)
             auto t_it = it2->begin();//map.begin
             while (t_it != it2->end()) {
                 int target_num = -1;
+//                int cnt = distance(it1->feasibleTimeIntervals_table.begin(), it2);
+//                cout<<"it1_pos:"<<distance(all_sate_feasible_time_interval.begin(), it1)<<"it2_pos:"<<distance(it1->feasibleTimeIntervals_table.begin(), it2)<<endl;
                 time_period t_p = feasibleTimeIntervals::findNextNoConflictTimePeriod(*it2, t_it, target_num);
                 if (t_p.first == -1) {
                     break;
@@ -148,14 +150,36 @@ void SatelliteSchedulePlanning::_preprocessing(vector<bool> activated_sat)
                     all_targets_table[target_num].is_scheduled = 1;
                     total_reward += all_targets_table[target_num]._reward;//加奖励！！！！！！
                     all_targets_table[target_num].scheduled_time = t_p;
+                    scheduled_targets.push_back(all_targets_table[target_num]);
+                    it1->eraseScheduledTimePiece(it2, it2->find(t_p.first), it2->find(t_p.second));//删除该时间片
                     break;
                 }
-                
             }
-
         }
     }
+    
     cout<<"total reward :"<<total_reward<<endl;
+    
+    //把已分配的target从冲突计数中删除
+    for (auto it1 = all_sate_feasible_time_interval.begin(); it1 != all_sate_feasible_time_interval.end(); ++it1){
+        for (auto it2 = it1->feasibleTimeIntervals_table.begin(); it2 != it1->feasibleTimeIntervals_table.end(); ++it2) {
+            for (auto it3 = it2->begin(); it3 != it2->end(); ++it3) {
+                
+                for (auto it = it3->second.target_num_table.begin(); it != it3->second.target_num_table.end(); ) {
+                    auto fi = find_if(scheduled_targets.begin(), scheduled_targets.end(), findTarget_with_Target_name(all_targets_table[*it].target_name));
+                    if (fi != scheduled_targets.end()) {            //找到了
+//                        cout<<"找到已经分配的target "<<all_targets_table[*it].target_name<<"并且删除"<<endl;
+                        it3->second.conflict_cnt--;
+                        it = it3->second.target_num_table.erase(it);
+                        continue;
+                    }
+                    ++it;
+                }
+            }
+        }
+    }
+    
+    
 //    for (auto it1 = every_satellite_cov_window.begin(); it1 != every_satellite_cov_window.end(); ++it1) {
 //        for (auto it2 = it1->begin(); it2 != it1->end(); ++it2) {
 //            if (all_targets_table[it2-it1->begin()].is_scheduled == 1)      //target的is_scheduled为1，则不会在访问该target任何信息

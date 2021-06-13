@@ -45,6 +45,7 @@ public:
 public:
     void readSatInfoFile();
     void readTarInfoFile();
+    void saveTarName(const int &num);
 //    void saveSatData();
 //    void readSatData();
     EarthTime getTime(const int& cnt, const EarthTime& start_time) const;//传入该卫星的起始观察时间和第几秒观察反推出目前时间

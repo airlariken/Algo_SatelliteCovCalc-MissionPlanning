@@ -145,7 +145,22 @@ void SatelliteInfoManagement::readTarInfoFile()
 
     return;
 }
-
+void SatelliteInfoManagement::saveTarName(const int &num)
+{
+    string path = "Target_Name";char c = '0'+num;
+    path.push_back(c);
+    path.append(".txt");
+    cout<<"writing file:"<<path<<endl;
+    ofstream fout(path);
+    for (auto it1 = all_target_table.begin(); it1 != all_target_table.end(); ++it1) {
+        if( it1-all_target_table.begin() == num) {
+            for (auto it2 = it1->begin(); it2 != it1->end(); ++it2) {
+                fout<<it2->target_name<<endl;
+            }
+        }
+    }
+    cout<<"finished!"<<endl;
+}
 int SatelliteInfoManagement::getTime(EarthTime t, EarthTime start)
 {
     int sum = 0;

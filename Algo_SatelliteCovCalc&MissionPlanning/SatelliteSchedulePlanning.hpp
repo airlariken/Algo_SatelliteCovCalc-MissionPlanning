@@ -83,6 +83,7 @@ struct feasibleTimeIntervals
             else{
                 //recursive call fun
                 __aux_dividedInterval(++it);
+                return;
             }
         }
     }
@@ -102,6 +103,23 @@ struct feasibleTimeIntervals
             }
         }
         return time_period(-1,-1);
+    }
+
+    void eraseScheduledTimePiece(vector<map<int, TimePieceInfo>>::iterator &it_m, map<int, TimePieceInfo>::iterator e_begin, map<int, TimePieceInfo>::iterator e_end) {
+        while(e_end != e_begin)
+            e_begin = it_m->erase(e_begin);
+        //由于删除时间片后可能将原有连续的时间片切成两半，故分割成两个
+        map<int, TimePieceInfo> t_map;
+        while (e_begin != it_m->end()) {
+            t_map.insert(*e_begin);
+            e_begin = it_m->erase(e_begin);
+        }
+        
+//        for(auto it = feasibleTimeIntervals_table.begin(); it != feasibleTimeIntervals_table.end(); ++it) {//上面erase可能导致m为空，于是在feas里面将空的处理掉
+            if (it_m->size() == 0)
+                it_m = feasibleTimeIntervals_table.erase(it_m);
+        
+        feasibleTimeIntervals_table.push_back(t_map);
     }
 };
 class SatelliteSchedulePlanning
@@ -174,6 +192,17 @@ inline bool SatelliteSchedulePlanning::_secondIsInTimeperiod(const time_period &
 
 
 
-
+//pred
+struct findTarget_with_Target_name {
+    string name;
+    findTarget_with_Target_name(string n):name(n){}
+    bool operator()(const TargetScheduleInfo &info1){
+        if (info1.target_name == name) {
+            return true;
+        }
+        return false;
+    }
+    
+};
 
 #endif /* SatelliteSchedulePlanning_hpp */
