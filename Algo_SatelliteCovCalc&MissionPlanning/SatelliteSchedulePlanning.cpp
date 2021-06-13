@@ -108,9 +108,7 @@ void SatelliteSchedulePlanning::_preprocessing(vector<bool> activated_sat)
         }
     }
     
-
-    
-    
+ 
     //将单个卫星的所有观测窗口合并，但要保留时间窗口的起点和终点，方便后续检测和处理
     for (auto it1 = every_satellite_cov_window.begin(); it1 != every_satellite_cov_window.end(); ++it1) {
         feasibleTimeIntervals temp_TI;
@@ -131,9 +129,11 @@ void SatelliteSchedulePlanning::_preprocessing(vector<bool> activated_sat)
         if (it1->TI.time_pieces.size() == 0)//如果该卫星没有被activated 则为空
             continue;
         //找到冲突数为0的时间段，直接分配出去
-        for (auto it2 = it1->feasibleTimeIntervals_table.begin(); it2 != it1->feasibleTimeIntervals_table.end(); ++it2) {
+        for (auto it2 = it1->feasibleTimeIntervals_table.begin(); it2 != it1->feasibleTimeIntervals_table.end(); ) {
             auto t_it = it2->begin();//map.begin
+            bool is_erase = true;//后续有个函数要对it2的迭代器指向的内容进行erase，故要判断it2是否被erase决定其是否要执行++it2的操作
             while (t_it != it2->end()) {
+                is_erase = false;
                 int target_num = -1;
 //                int cnt = distance(it1->feasibleTimeIntervals_table.begin(), it2);
 //                cout<<"it1_pos:"<<distance(all_sate_feasible_time_interval.begin(), it1)<<"it2_pos:"<<distance(it1->feasibleTimeIntervals_table.begin(), it2)<<endl;
@@ -151,10 +151,12 @@ void SatelliteSchedulePlanning::_preprocessing(vector<bool> activated_sat)
                     total_reward += all_targets_table[target_num]._reward;//加奖励！！！！！！
                     all_targets_table[target_num].scheduled_time = t_p;
                     scheduled_targets.push_back(all_targets_table[target_num]);
-                    it1->eraseScheduledTimePiece(it2, it2->find(t_p.first), it2->find(t_p.second));//删除该时间片
+                    is_erase = it1->eraseScheduledTimePiece(it2, it2->find(t_p.first), it2->find(t_p.second));//删除该时间片
                     break;
                 }
             }
+            if (is_erase == false)
+                ++it2;
         }
     }
     

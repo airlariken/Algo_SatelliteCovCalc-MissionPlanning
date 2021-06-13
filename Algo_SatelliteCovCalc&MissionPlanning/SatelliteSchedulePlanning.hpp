@@ -105,7 +105,7 @@ struct feasibleTimeIntervals
         return time_period(-1,-1);
     }
 
-    void eraseScheduledTimePiece(vector<map<int, TimePieceInfo>>::iterator &it_m, map<int, TimePieceInfo>::iterator e_begin, map<int, TimePieceInfo>::iterator e_end) {
+    bool eraseScheduledTimePiece(vector<map<int, TimePieceInfo>>::iterator &it_m, map<int, TimePieceInfo>::iterator e_begin, map<int, TimePieceInfo>::iterator e_end) {
         while(e_end != e_begin)
             e_begin = it_m->erase(e_begin);
         //由于删除时间片后可能将原有连续的时间片切成两半，故分割成两个
@@ -114,12 +114,14 @@ struct feasibleTimeIntervals
             t_map.insert(*e_begin);
             e_begin = it_m->erase(e_begin);
         }
-        
-//        for(auto it = feasibleTimeIntervals_table.begin(); it != feasibleTimeIntervals_table.end(); ++it) {//上面erase可能导致m为空，于是在feas里面将空的处理掉
-            if (it_m->size() == 0)
-                it_m = feasibleTimeIntervals_table.erase(it_m);
-        
         feasibleTimeIntervals_table.push_back(t_map);
+        
+        //上面erase可能导致m为空，于是在feas_table里面将空的处理掉，并且防止迭代器失效，所以传入参数是迭代器的引用
+        if (it_m->size() == 0) {
+            it_m = feasibleTimeIntervals_table.erase(it_m);
+            return true;
+        }
+        return false;
     }
 };
 class SatelliteSchedulePlanning
