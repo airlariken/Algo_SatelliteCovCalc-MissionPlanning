@@ -13,6 +13,7 @@
 struct TargetScheduleInfo: public TargetInfo {
     bool is_scheduled = 0;
     int remaining_time = 0;
+    int scheduled_target_num = -1;
     time_period scheduled_time;
     
     TargetScheduleInfo(string name, const EarthPos &p, const int &obs_t, const int &reward):TargetInfo(name, p, obs_t, reward), remaining_time(obs_t){}
@@ -114,7 +115,11 @@ struct feasibleTimeIntervals
             t_map.insert(*e_begin);
             e_begin = it_m->erase(e_begin);
         }
-        feasibleTimeIntervals_table.push_back(t_map);
+        if (t_map.size() != 0) {            //捏吗，push_back会让vector的所有迭代器失效！！！
+            long dis = distance(feasibleTimeIntervals_table.begin(), it_m);
+            feasibleTimeIntervals_table.push_back(t_map);
+            it_m = feasibleTimeIntervals_table.begin() + dis;
+        }
         
         //上面erase可能导致m为空，于是在feas_table里面将空的处理掉，并且防止迭代器失效，所以传入参数是迭代器的引用
         if (it_m->size() == 0) {
@@ -124,11 +129,16 @@ struct feasibleTimeIntervals
         return false;
     }
 };
+
+
+
 class SatelliteSchedulePlanning
 {
 private:
     vector<feasibleTimeIntervals> all_sate_feasible_time_interval;
     vector<int>satellite_handling_time;
+    int total_reward = 0;
+    vector<bool> activated_sat;
 public:
     vector<vector<vector<time_period>>> every_satellite_cov_window;
     map<string, TargetInfo> targetname_to_info;//由目标名字到target数据结构的映射
@@ -148,13 +158,20 @@ public:
     
     
     bool _isSingleTarget(const int & sate_num, const int &target_num, const int &cnt_seconds);  //判定该target在该时间窗口是否一直是单覆盖
-    inline bool _secondIsInTimeperiod(const time_period &p, const int &cnt_seconds);
-    
+    inline bool _secondIsInTimeperiod(const time_period &p, const int &cnt_seconds);//该秒cnt_seconds在时间段p内返回true
+//算法部分
+    void _setActivatedSat(vector<bool> activated_sat = {1,1,1,1,1,1,1,1,1});
     void algoChoiceAndSatAct();
-    void greedyAlgo(vector<bool> activated_sat = {1,1,1,1,1,1,1,1,1});
-    void _preprocessing(vector<bool> activated_sat = {1,1,1,1,1,1,1,1,1});
-    void _preprocessInterativlyRemove();
+    void greedyAlgo();
+    //预处理函数，非常重要，缩小解空间
+    void _preprocessing();
+    void InterativelyRemove();
 //    void _combineTimePeriod();
+    
+    
+    
+    //test&output fun
+    inline void outputResult();
 };
 
 //inline functions must be definded in .h file
@@ -166,6 +183,7 @@ inline void SatelliteSchedulePlanning::ini_clear()
     all_targets_table.clear();
     scheduled_targets.clear();
     satellite_handling_time = vector<int>{30,30,30,35,35,35,25,25,25};//题目给出的处理时间
+    total_reward = 0;
 }
 
 
@@ -189,9 +207,17 @@ inline bool SatelliteSchedulePlanning::_secondIsInTimeperiod(const time_period &
     return (cnt_seconds < p.second) && (cnt_seconds > p.first);
 }
 
+inline void SatelliteSchedulePlanning::outputResult()
+{
+    for (auto it = scheduled_targets.begin(); it != scheduled_targets.end(); ++it) {
+        cout<<it->target_name<<'\t'<<it->scheduled_time.first<<'\t'<<it->scheduled_time.first<<"target_num:"<<it->scheduled_target_num<<endl;
+    }
+}
 
-
-
+inline void SatelliteSchedulePlanning::_setActivatedSat(vector<bool> t_activated_sat)
+{
+    activated_sat = t_activated_sat;
+}
 
 
 //pred

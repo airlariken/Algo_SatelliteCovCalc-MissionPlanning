@@ -29,7 +29,9 @@ int main(int argc, const char * argv[]) {
     p.readSatCovWinFile(0);
     p.readTarInfoFile(1);
     
-//    p._preprocessing(vector<bool>{1,0,0,0,0,0,1,0,0});
+    p._setActivatedSat(vector<bool>{1,0,0,0,0,0,1,0,0});
     p._preprocessing();
+//    p._preprocessing();
+    p.outputResult();
     return 0;
 }
