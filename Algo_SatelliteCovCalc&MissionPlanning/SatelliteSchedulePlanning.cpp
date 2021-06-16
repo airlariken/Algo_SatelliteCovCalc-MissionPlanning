@@ -297,7 +297,7 @@ void SatelliteSchedulePlanning::integerAlgo(time_period limit)
     using namespace absl;
     
 //    solver->SetTimeLimit(100);
-    solver->set_time_limit(60*1000);
+    solver->set_time_limit(5*60*1000);//5mins
     
     if (!solver) {
     LOG(WARNING) << "SCIP solver unavailable.";
