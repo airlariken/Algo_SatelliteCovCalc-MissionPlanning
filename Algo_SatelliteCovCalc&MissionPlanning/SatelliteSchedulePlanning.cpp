@@ -295,11 +295,11 @@ void SatelliteSchedulePlanning::integerAlgo()
     }
 //
     
-    vector<vector<vector<void*>>> Vec_Fii_j;
+    vector<vector<vector<MPVariable*>>> Vec_Fii_j;
     for (int i = 0; i < all_targets_table.size(); ++i) {
-        vector<vector<void*>> t_v1;
+        vector<vector<MPVariable*>> t_v1;
         for (int i_ = 0; i_ < all_targets_table.size(); ++i_) {
-            vector<void*> t_v;
+            vector<MPVariable*> t_v;
             if(i != i_) {
                 for (int j = 0; j < every_satellite_cov_window.size(); ++j) {
                     if (activated_sat[j] == true) {
@@ -330,8 +330,8 @@ void SatelliteSchedulePlanning::integerAlgo()
     LOG(INFO) << "Number of variables = " << solver->NumVariables();
 //
 //    // E(xijk) <= 1
-    MPConstraint* const c0 = solver->MakeRowConstraint(-infinity, 1, "c0");
     for (auto it1 = Vec_Xijk.begin(); it1 != Vec_Xijk.end(); ++it1) {
+        MPConstraint* const c0 = solver->MakeRowConstraint(-1, 1, "c0");
         for (auto it2 = it1->begin(); it2 != it1->end(); ++it2) {
             if (activated_sat[distance(it1->begin(), it2)] == false)
                 continue;
@@ -415,7 +415,7 @@ void SatelliteSchedulePlanning::integerAlgo()
                     c5->SetCoefficient(Vec_ti[i], 1);
                     c5->SetCoefficient(Vec_ti[i_], -1);
                     int t_c = infinity - 2 * all_targets_table[i_].observe_time - satellite_handling_time[j];
-                    c5->SetCoefficient((MPVariable*)Vec_Fii_j[i][i_][j], t_c);
+                    c5->SetCoefficient(Vec_Fii_j[i][i_][j], t_c);
 
 
                     low_bound = all_targets_table[i].observe_time - infinity;
@@ -423,7 +423,7 @@ void SatelliteSchedulePlanning::integerAlgo()
                     c6->SetCoefficient(Vec_ti[i_], 1);
                     c6->SetCoefficient(Vec_ti[i], -1);
                     t_c = infinity - 2 * all_targets_table[i].observe_time - satellite_handling_time[j];
-                    c6->SetCoefficient((MPVariable*)Vec_Fii_j[i_][i][j], t_c);
+                    c6->SetCoefficient(Vec_Fii_j[i_][i][j], t_c);
                 }
             }
         }
@@ -438,16 +438,16 @@ void SatelliteSchedulePlanning::integerAlgo()
             if(i != i_) {
                 for (int j = 0; j < Vec_Fii_j[i][i_].size(); ++j) {
                     MPConstraint* const c7= solver->MakeRowConstraint(-infinity, 0, "c7");
-                    c7->SetCoefficient((MPVariable*)Vec_Fii_j[i][i_][j], 1);
-                    c7->SetCoefficient((MPVariable*)Vec_Fii_j[i_][i][j], 1);
+                    c7->SetCoefficient(Vec_Fii_j[i][i_][j], 1);
+                    c7->SetCoefficient(Vec_Fii_j[i_][i][j], 1);
                     for (auto it1 = Vec_Xijk[i].begin(); it1 != Vec_Xijk[i].end(); ++it1) {
                         for (auto it2 = it1->begin(); it2 != it1->end(); ++it2) {
                             c7->SetCoefficient(*it2, -1);
                         }
                     }
                     MPConstraint* const c8= solver->MakeRowConstraint(-infinity, 0, "c8");
-                    c8->SetCoefficient((MPVariable*)Vec_Fii_j[i][i_][j], 1);
-                    c8->SetCoefficient((MPVariable*)(MPVariable*)Vec_Fii_j[i_][i][j], 1);
+                    c8->SetCoefficient(Vec_Fii_j[i][i_][j], 1);
+                    c8->SetCoefficient(Vec_Fii_j[i_][i][j], 1);
                     for (auto it1 = Vec_Xijk[i_].begin(); it1 != Vec_Xijk[i_].end(); ++it1) {
                         for (auto it2 = it1->begin(); it2 != it1->end(); ++it2) {
                             c8->SetCoefficient(*it2, -1);
@@ -455,8 +455,8 @@ void SatelliteSchedulePlanning::integerAlgo()
                     }
 
                     MPConstraint* const c9= solver->MakeRowConstraint(-1, infinity, "c9");
-                    c9->SetCoefficient((MPVariable*)Vec_Fii_j[i][i_][j], 1);
-                    c9->SetCoefficient((MPVariable*)Vec_Fii_j[i_][i][j], 1);
+                    c9->SetCoefficient(Vec_Fii_j[i][i_][j], 1);
+                    c9->SetCoefficient(Vec_Fii_j[i_][i][j], 1);
 
                     for (auto it1 = Vec_Xijk[i].begin(); it1 != Vec_Xijk[i].end(); ++it1) {
                         for (auto it2 = it1->begin(); it2 != it1->end(); ++it2) {
@@ -474,8 +474,8 @@ void SatelliteSchedulePlanning::integerAlgo()
                     MPConstraint* const c10= solver->MakeRowConstraint(-infinity, 1, "c10");
                     for (int x = 0; x < every_satellite_cov_window.size(); ++x) {
                         if (activated_sat[x] == true) {
-                            c10->SetCoefficient((MPVariable*)Vec_Fii_j[i][i_][x], 1);
-                            c10->SetCoefficient((MPVariable*)Vec_Fii_j[i_][i][x], 1);
+                            c10->SetCoefficient(Vec_Fii_j[i][i_][x], 1);
+                            c10->SetCoefficient(Vec_Fii_j[i_][i][x], 1);
                         }
                     }
                 }
