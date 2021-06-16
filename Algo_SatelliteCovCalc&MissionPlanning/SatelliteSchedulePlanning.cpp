@@ -327,25 +327,25 @@ void SatelliteSchedulePlanning::integerAlgo(time_period limit)
     
     vector<MPVariable*> Vec_ti;
     for (auto it = all_targets_table.begin(); it != all_targets_table.end(); ++it) {
-//        int tar_num = distance(all_targets_table.begin(), it);
-//        int Sbeg = infinity, Send = 0;
-//        for (int i = 0; i < every_satellite_cov_window.size(); ++i) {
-//            for (int k = 0; k < every_satellite_cov_window[i][tar_num].size(); ++k) {
-//                if (every_satellite_cov_window[i][tar_num][k].first < Sbeg) {
-//                    Sbeg = every_satellite_cov_window[i][tar_num][k].first;
-//                }
-//                if (every_satellite_cov_window[i][tar_num][k].second > Send) {
-//                    Send = every_satellite_cov_window[i][tar_num][k].second;
-//                }
-//            }
-//        }
-        Vec_ti.push_back(solver->MakeIntVar(0, infinity, "ti"));
+        int tar_num = distance(all_targets_table.begin(), it);
+        int Sbeg = infinity, Send = 0;
+        for (int i = 0; i < every_satellite_cov_window.size(); ++i) {
+            for (int k = 0; k < every_satellite_cov_window[i][tar_num].size(); ++k) {
+                if (every_satellite_cov_window[i][tar_num][k].first < Sbeg) {
+                    Sbeg = every_satellite_cov_window[i][tar_num][k].first;
+                }
+                if (every_satellite_cov_window[i][tar_num][k].second > Send) {
+                    Send = every_satellite_cov_window[i][tar_num][k].second;
+                }
+            }
+        }
+//        Vec_ti.push_back(solver->MakeIntVar(0, infinity, "ti"));
         //优化缩小解空间
-//        cout<<tar_num<<" :"<<Sbeg<<'\t'<<Send<<endl;
-//        if (Sbeg == infinity)
-//            Vec_ti.push_back(solver->MakeIntVar(0, 1, "ti"));
-//        else
-//            Vec_ti.push_back(solver->MakeIntVar(Sbeg-1, Send+1, "ti"));
+        cout<<tar_num<<" :"<<Sbeg<<'\t'<<Send<<endl;
+        if (Sbeg == infinity)
+            Vec_ti.push_back(solver->MakeIntVar(0, 1, "ti"));
+        else
+            Vec_ti.push_back(solver->MakeIntVar(Sbeg-1, Send+1, "ti"));
     }
 //
     
