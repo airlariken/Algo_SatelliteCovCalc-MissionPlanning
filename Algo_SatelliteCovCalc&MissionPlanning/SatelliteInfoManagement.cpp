@@ -264,7 +264,8 @@ void SatelliteInfoManagement::coverCal(const int &file_num)//传入文件的inde
         for (int i = 0; i < all_satellite_timetable.size(); ++i) {
             vector<pair<EarthTime, int>> temp_vec;
             for (int j = 0; j < all_satellite_timetable[i].size(); ++j) {
-                if (all_satellite_timetable[i][j].isInside_polygon(target1._pos)) {
+                
+                if (all_satellite_timetable[i][j].isInside_circle(target1._pos)) {
                     pair<EarthTime, int> pair_tmp(getTime(j, satellite_1_starttime), j);
                     temp_vec.push_back(pair_tmp);
                     target_k_window_of_all_sat.push_back(pair_tmp);
@@ -588,12 +589,22 @@ bool SatelliteCovArea::isInside_polygon(const EarthPos &p) const
     }
     return true;
 }
-//
-//bool SatelliteCovArea::isInside_circle(const EarthPos &p) const
-//{
-//    float t = pow(p._x - this->circle_center._x, 2) + pow(p._y - this->circle_center._y, 2);
-//    if (t < pow(this->circle_radius, 2)) {
-//        return true;
-//    }
-//    return false;
-//}
+
+bool SatelliteCovArea::isInside_circle(const EarthPos &p) const
+{
+    float central_x, central_y;
+    central_x = (polygon_pos[0]._x + polygon_pos[10]._x) / 2;
+    central_y = (polygon_pos[0]._y + polygon_pos[10]._y) / 2;
+    float radius = (polygon_pos[0]._y - polygon_pos[10]._y) / 2;
+//    float radius2 = fabs((transformedX(polygon_pos[0]._x, polygon_pos[0]._y) - transformedX(polygon_pos[10]._x, polygon_pos[10]._y))) / 2;
+//    cout<<radius<<'\t'<<radius2<<endl;
+    
+    
+    float avrg1 = transformedX(central_x - p._x, central_y);
+    float avrg2 = transformedX(central_x - p._x, p._y);
+    float t = pow((avrg1+avrg2)/2, 2) + pow(central_y - p._y, 2);
+    if (t < pow(radius, 2)) {
+        return true;
+    }
+    return false;
+}

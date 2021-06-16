@@ -18,4 +18,12 @@
 #include <list>
 using namespace std;
 
+//integer programming
+#include "ortools/linear_solver/linear_solver.h"
+#include <memory>
+
+#include "ortools/sat/cp_model.h"
+#include "ortools/sat/model.h"
+#include "ortools/sat/sat_parameters.pb.h"
+
 #endif /* Header_h */

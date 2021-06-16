@@ -14,19 +14,11 @@ struct TargetScheduleInfo: public TargetInfo {
     bool is_scheduled = 0;
     int remaining_time = 0;
     int scheduled_target_num = -1;
-    time_period scheduled_time;
+    time_period scheduled_time = time_period(-1,-1);
     
     TargetScheduleInfo(string name, const EarthPos &p, const int &obs_t, const int &reward):TargetInfo(name, p, obs_t, reward), remaining_time(obs_t){}
 };
 
-//enum time_piece_set
-//{
-//    FeasibleTimeInterval, DisabledTimeInterval, Back
-//};
-//enum time_window_set
-//{
-//
-//}
 struct TimePieceInfo{                           //按秒存时间片。。。
     int conflict_cnt = 0;
     set<int> target_num_table;                  //记录该s内的target下标
@@ -46,6 +38,7 @@ struct TimePieceInfo{                           //按秒存时间片。。。
         return tmp_set;
     }
 };
+
 struct TimeInterval
 {
     map<int, TimePieceInfo> time_pieces;//每个int都是切成片的时间段,第二个是标记该时间段的种类
@@ -62,6 +55,7 @@ struct TimeInterval
     }
 
 };
+
 struct feasibleTimeIntervals
 {
     TimeInterval TI;
@@ -89,7 +83,8 @@ struct feasibleTimeIntervals
         }
     }
     
-    static time_period findNextNoConflictTimePeriod(const map<int, TimePieceInfo> &m, map<int, TimePieceInfo>::iterator& it, int &target_num) {
+    //该函数用于找到时间段冲突数为0的一个period
+    static time_period findNextNoConflictTimePeriod(const map<int, TimePieceInfo> &m, map<int, TimePieceInfo>::iterator& it, int &target_num) {         //第一个参数是map的引用，第二个是该map迭代器，第三个是卫星编号
         bool start_tag=0;
         time_period t_p;
         for (; it != m.end(); ++it) {
@@ -105,7 +100,45 @@ struct feasibleTimeIntervals
         }
         return time_period(-1,-1);
     }
+    
+    //该函数用于找到该时间段中冲突数最小的一个period，并且返回该冲突的所有target_num，为后续做target选择做准备
+    static time_period findSmallestConflictsTimePeriod(const map<int, TimePieceInfo> &m, set<int> &Vec_target_num) {
+        bool start_tag=0;
+        time_period t_p;
+        int t_minconflicts = INT_MAX;
+        for (auto it = m.begin(); it != m.end(); ++it) {
+            if (it->second.conflict_cnt < t_minconflicts) {
+                start_tag = 1;
+                t_p.first = it->first;
+                Vec_target_num = it->second.target_num_table;
+            }
+            if (start_tag == 1 && it->second.conflict_cnt > t_minconflicts) {
+                t_p.second = it->first;
+                cout<<"conflicts times:"<<t_minconflicts<<endl;
+                return t_p;
+            }
+        }
+        return time_period(-1,-1);
+    }
 
+    //从头开始截取一个time interval进行贪心分析
+    static time_period getBeginTimePeriod(const map<int, TimePieceInfo> &m, set<int> &Vec_target_num) {
+        time_period t_p;
+        Vec_target_num.clear();
+        if (m.size() == 0)
+            return time_period(-1,-1);
+        int t_conflicts = m.begin()->second.conflict_cnt;
+        t_p.first = m.begin()->first;
+        for (auto it = m.begin(); it != m.end(); ++it) {
+            if (it->second.conflict_cnt != t_conflicts) {
+                t_p.second = it->first;
+                cout<<"conflicts times:"<<t_conflicts<<endl;
+                return t_p;
+            }
+        }
+        return time_period(-1,-1);
+    }
+    
     bool eraseScheduledTimePiece(vector<map<int, TimePieceInfo>>::iterator &it_m, map<int, TimePieceInfo>::iterator e_begin, map<int, TimePieceInfo>::iterator e_end) {
         while(e_end != e_begin)
             e_begin = it_m->erase(e_begin);
@@ -128,6 +161,8 @@ struct feasibleTimeIntervals
         }
         return false;
     }
+    
+    
 };
 
 
@@ -136,14 +171,15 @@ class SatelliteSchedulePlanning
 {
 private:
     vector<feasibleTimeIntervals> all_sate_feasible_time_interval;
-    vector<int>satellite_handling_time;
+    vector<int>satellite_handling_time;//题目新加的要求，卫星观察完后要加一个处理时间
+    vector<pair<time_period, TargetInfo>> useless_timewindow;
     int total_reward = 0;
     vector<bool> activated_sat;
 public:
+//private:
     vector<vector<vector<time_period>>> every_satellite_cov_window;
     map<string, TargetInfo> targetname_to_info;//由目标名字到target数据结构的映射
     vector<TargetScheduleInfo> all_targets_table;//全部读到一个vector中方便处理
-    
     vector<TargetScheduleInfo> scheduled_targets;//pair中int为target下标，与all_target_table所对应
     
     
@@ -154,8 +190,6 @@ public:
     inline int getDuration(const time_period &p) const;
     inline void ini_clear();
     SatelliteSchedulePlanning(){ini_clear();}
-
-    
     
     bool _isSingleTarget(const int & sate_num, const int &target_num, const int &cnt_seconds);  //判定该target在该时间窗口是否一直是单覆盖
     inline bool _secondIsInTimeperiod(const time_period &p, const int &cnt_seconds);//该秒cnt_seconds在时间段p内返回true
@@ -163,16 +197,21 @@ public:
     void _setActivatedSat(vector<bool> activated_sat = {1,1,1,1,1,1,1,1,1});
     void algoChoiceAndSatAct();
     void greedyAlgo();
+    void integerAlgo(time_period limit = time_period(0, 3600*24));
     //预处理函数，非常重要，缩小解空间
     void _preprocessing();
-    void InterativelyRemove();
+    void InterativelyRemove();//循环处理冲突数为0的时间窗口，看看能不能分配
 //    void _combineTimePeriod();
-    
-    
     
     //test&output fun
     inline void outputResult();
 };
+
+
+
+
+
+
 
 //inline functions must be definded in .h file
 inline void SatelliteSchedulePlanning::ini_clear()
@@ -230,7 +269,11 @@ struct findTarget_with_Target_name {
         }
         return false;
     }
-    
+};
+struct sortMinReward {
+    bool operator()(const pair<TargetScheduleInfo, int> &inf1, const pair<TargetScheduleInfo, int> &inf2)const {
+        return (float)inf1.first._reward/inf1.first.remaining_time < (float)inf2.first._reward/inf2.first.remaining_time;
+    }
 };
 
 #endif /* SatelliteSchedulePlanning_hpp */
