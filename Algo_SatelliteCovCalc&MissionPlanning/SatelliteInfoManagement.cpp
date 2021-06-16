@@ -339,8 +339,8 @@ void SatelliteInfoManagement::_saveEverySateObsWindow(vector<vector<pair<EarthTi
         for (int j = 0; j < every_satellite_window_period[i].size(); ++j) {
             if (every_satellite_window_period[i][j].first == 0)
                 break;
-//        fout<<every_satellite_window_period[i][j].first<<'\t'<<every_satellite_window_period[i][j].second<<endl;
-            fout<<getTime(every_satellite_window_period[i][j].first, satellite_1_starttime)<<"      "<<getTime(every_satellite_window_period[i][j].second, satellite_1_starttime)<<endl;
+        fout<<every_satellite_window_period[i][j].first<<'\t'<<every_satellite_window_period[i][j].second<<endl;
+//            fout<<getTime(every_satellite_window_period[i][j].first, satellite_1_starttime)<<"      "<<getTime(every_satellite_window_period[i][j].second, satellite_1_starttime)<<endl;
         }
     }
 }

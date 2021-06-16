@@ -12,7 +12,14 @@ int main(int argc, const char * argv[]) {
 //    cout<<1 * cos(M_PI/180 * 80);
 //    //第一问部分
     SatelliteInfoManagement m;
-//
+    string time_start_limit = "2021/1/1 11:00:00";
+    string time_stop_limit = "2021/1/1 12:30:00";
+    string time_start = "2021/1/1 0:00:00";
+    cout<<m.getTime(m.getTime(time_start_limit), m.getTime(time_start))<<endl;
+    cout<<m.getTime(m.getTime(time_stop_limit), m.getTime(time_start));
+    
+    
+////
 //    m.readSatInfoFile();
 //    m.readTarInfoFile();
 //    m.saveTarName(0);
@@ -32,7 +39,9 @@ int main(int argc, const char * argv[]) {
     p._setActivatedSat(vector<bool>{1,0,0,0,0,0,1,0,0});
 //    p._setActivatedSat();
 //    p._preprocessing();
-    p.integerAlgo();
+    
+    p.integerAlgo(time_period(39600,45000));
+//    p.integerAlgo();
 //    p.outputResult();
     return 0;
 }
