@@ -15,8 +15,8 @@ int main(int argc, const char * argv[]) {
     string time_start_limit = "2021/1/1 11:00:00";
     string time_stop_limit = "2021/1/1 12:30:00";
     string time_start = "2021/1/1 0:00:00";
-    cout<<m.getTime(m.getTime(time_start_limit), m.getTime(time_start))<<endl;
-    cout<<m.getTime(m.getTime(time_stop_limit), m.getTime(time_start));
+//    cout<<m.getTime(m.getTime(time_start_limit), m.getTime(time_start))<<endl;
+//    cout<<m.getTime(m.getTime(time_stop_limit), m.getTime(time_start));
     
     
 ////
