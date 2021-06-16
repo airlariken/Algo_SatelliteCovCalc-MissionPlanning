@@ -256,6 +256,288 @@ void SatelliteSchedulePlanning::greedyAlgo()
                 }
 }
 
+
+//整数规划
+void SatelliteSchedulePlanning::integerAlgo()
+{
+    using namespace operations_research;
+    // Create the mip solver with the SCIP backend.
+    std::unique_ptr<MPSolver> solver(MPSolver::CreateSolver("SCIP"));
+    if (!solver) {
+    LOG(WARNING) << "SCIP solver unavailable.";
+    return;
+    }
+
+//    const double infinity = solver->infinity();
+    const int infinity = INT_MAX/2;
+    
+    // x and y are integer non-negative variables.
+    vector<vector<vector<MPVariable*>>> Vec_Xijk;
+    for (int i = 0; i < all_targets_table.size(); ++i) {
+        vector<vector<MPVariable*>> t_v1;
+        for (int j = 0; j < every_satellite_cov_window.size(); ++j) {
+            vector<MPVariable*> t_v2;
+            if (activated_sat[j] == true) {
+                for (auto it3 = every_satellite_cov_window[j][i].begin(); it3 != every_satellite_cov_window[j][i].end(); ++it3) {
+                    t_v2.push_back(solver->MakeIntVar(0, 1, "Xijk"));
+    //                MPVariable* const Xijk = solver->MakeIntVar(0, 1, "Xijk");
+                }
+            }
+            t_v1.push_back(t_v2);
+        }
+        Vec_Xijk.push_back(t_v1);
+    }
+    
+    
+    vector<MPVariable*> Vec_ti;
+    for (auto it = all_targets_table.begin(); it != all_targets_table.end(); ++it) {
+        Vec_ti.push_back(solver->MakeIntVar(0, infinity, "ti"));
+    }
+//
+    
+    vector<vector<vector<void*>>> Vec_Fii_j;
+    for (int i = 0; i < all_targets_table.size(); ++i) {
+        vector<vector<void*>> t_v1;
+        for (int i_ = 0; i_ < all_targets_table.size(); ++i_) {
+            vector<void*> t_v;
+            if(i != i_) {
+                for (int j = 0; j < every_satellite_cov_window.size(); ++j) {
+                    if (activated_sat[j] == true) {
+                        if (every_satellite_cov_window[j][i].size() != 0 && every_satellite_cov_window[j][i_].size() != 0) {
+                            //两个target会被同一个卫星服务的话引入变量Fii_j = 1表示第j个卫星侦查顺序为第i个目标在第i_目标前面
+                            t_v.push_back(solver->MakeIntVar(0, 1, "Fii_"));
+                        }
+                        else
+                            t_v.push_back(nullptr);
+                    }
+                    else
+                        t_v.push_back(nullptr);
+                }
+            }
+            t_v1.push_back(t_v);
+        }
+        Vec_Fii_j.push_back(t_v1);
+    }
+    //attention！ Fi_ij和Fii_j可以在同一个vec中表示，只是i_和i的取值交换就行
+
+
+    
+//    MPVariable* const Xijk = solver->MakeIntVar(0, 1, "Xijk");
+//    MPVariable* const ti = solver->MakeIntVar(0, infinity, "ti")v
+//    MPVariable* const Fii_ = solver->MakeIntVar(0, 1, "Fii_");
+//    MPVariable* const Fi_i = solver->MakeIntVar(0, 1, "Fi_i");
+
+    LOG(INFO) << "Number of variables = " << solver->NumVariables();
+//
+//    // E(xijk) <= 1
+    MPConstraint* const c0 = solver->MakeRowConstraint(-infinity, 1, "c0");
+    for (auto it1 = Vec_Xijk.begin(); it1 != Vec_Xijk.end(); ++it1) {
+        for (auto it2 = it1->begin(); it2 != it1->end(); ++it2) {
+            if (activated_sat[distance(it1->begin(), it2)] == false)
+                continue;
+            for (auto it3 = it2->begin(); it3 != it2->end(); ++it3) {
+                c0->SetCoefficient(*it3, 1);
+            }
+        }
+    }
+//
+////    Di*Xijk <= Aj
+//    MPConstraint* const c1 = solver->MakeRowConstraint(-infinity, 1, "c1");
+//    for (auto it1 = Vec_Xijk.begin(); it1 != Vec_Xijk.end(); ++it1) {
+//        for (auto it2 = it1->begin(); it2 != it1->end(); ++it2) {
+//            if (activated_sat[distance(it1->begin(), it2)] == false)
+//                continue;
+//            for (auto it3 = it2->begin(); it3 != it2->end(); ++it3) {
+//                int tar_num = distance(Vec_Xijk.begin(), it1);
+//                c1->SetCoefficient(*it3, all_targets_table[tar_num].observe_time);
+//            }
+//        }
+//    }
+    
+//    Sbeg <= ti <= Send - Di
+    for (auto it = Vec_ti.begin(); it != Vec_ti.end(); ++it) {
+        // Sbeg <= ti <= Send - Di
+        //暂定！！！！！！！！！！！！！！！！！
+        const int Sbeg = 0;//暂定！！！！！！！！！！！！！！！！！//暂定！！！！！！！！！！！！！！！！！
+        //暂定！！！！！！！！！！！！！！！！！
+        const int Send = 3600 * 24;//暂定！！！！！！！！！！！！！！！！！//暂定！！！！！！！！！！！！！！！！！//暂定！！！！！！！！！！！！！！！！！
+        //暂定！！！！！！！！！！！！！！！！！
+        int tar_num = (int)distance(Vec_ti.begin(), it);
+        MPConstraint* const c2 = solver->MakeRowConstraint(Sbeg, Send - all_targets_table[tar_num].observe_time, "c2");
+        c2->SetCoefficient(*it, 1);
+    }
+    
+    //    ti-BegijK*Xijk >= 0
+        
+        for (auto it1 = Vec_Xijk.begin(); it1 != Vec_Xijk.end(); ++it1) {
+            for (auto it2 = it1->begin(); it2 != it1->end(); ++it2) {
+                if (activated_sat[distance(it1->begin(), it2)] == false)  continue;
+                for (auto it3 = it2->begin(); it3 != it2->end(); ++it3) {
+                    MPConstraint* const c3 = solver->MakeRowConstraint(0, infinity, "c3");
+                    int tar_num = distance(Vec_Xijk.begin(), it1);//对应target_num
+                    int sata_num = (int)distance(it1->begin(), it2);
+                    int win_num = distance(it2->begin(), it3);
+                    c3->SetCoefficient(*it3, -1*every_satellite_cov_window[sata_num][tar_num][win_num].first);
+                    c3->SetCoefficient(Vec_ti[tar_num], 1);
+                }
+            }
+        }
+    
+    //ti-(Endijk-Di)Xijk - infinity(1-xijk)<=0
+    
+    for (auto it1 = Vec_Xijk.begin(); it1 != Vec_Xijk.end(); ++it1) {
+        for (auto it2 = it1->begin(); it2 != it1->end(); ++it2) {
+            if (activated_sat[distance(it1->begin(), it2)] == false)  continue;
+            for (auto it3 = it2->begin(); it3 != it2->end(); ++it3) {
+                MPConstraint* const c4 = solver->MakeRowConstraint(-infinity, infinity, "c4");
+                int tar_num = distance(Vec_Xijk.begin(), it1);//对应target_num
+                int sata_num = (int)distance(it1->begin(), it2);
+                int win_num = distance(it2->begin(), it3);
+                c4->SetCoefficient(Vec_ti[tar_num], 1);
+                int Di = all_targets_table[tar_num].observe_time;
+                int Endijk = every_satellite_cov_window[sata_num][tar_num][win_num].second;
+                c4->SetCoefficient(*it3, infinity+Di+Endijk);
+            }
+        }
+    }
+//
+    //ti-ti_ >=.....
+    //两条约束合并
+    for (int i = 0; i < Vec_Fii_j.size(); ++i) {
+        vector<vector<MPVariable*>> t_v1;
+        for (int i_ = 0; i_ < Vec_Fii_j[i].size(); ++i_) {
+            vector<MPVariable*> t_v;
+            if(i != i_) {
+                for (int j = 0; j < Vec_Fii_j[i][i_].size(); ++j) {
+                    if (activated_sat[j] == false)  continue;
+                    int low_bound = all_targets_table[i_].observe_time - infinity;
+                    MPConstraint* const c5= solver->MakeRowConstraint(low_bound, infinity, "c5");
+                    c5->SetCoefficient(Vec_ti[i], 1);
+                    c5->SetCoefficient(Vec_ti[i_], -1);
+                    int t_c = infinity - 2 * all_targets_table[i_].observe_time - satellite_handling_time[j];
+                    c5->SetCoefficient((MPVariable*)Vec_Fii_j[i][i_][j], t_c);
+
+
+                    low_bound = all_targets_table[i].observe_time - infinity;
+                    MPConstraint* const c6= solver->MakeRowConstraint(low_bound, infinity, "c6");
+                    c6->SetCoefficient(Vec_ti[i_], 1);
+                    c6->SetCoefficient(Vec_ti[i], -1);
+                    t_c = infinity - 2 * all_targets_table[i].observe_time - satellite_handling_time[j];
+                    c6->SetCoefficient((MPVariable*)Vec_Fii_j[i_][i][j], t_c);
+                }
+            }
+        }
+    }
+    
+    
+
+    for (int i = 0; i < Vec_Fii_j.size(); ++i) {
+        vector<vector<MPVariable*>> t_v1;
+        for (int i_ = 0; i_ < Vec_Fii_j[i].size(); ++i_) {
+            vector<MPVariable*> t_v;
+            if(i != i_) {
+                for (int j = 0; j < Vec_Fii_j[i][i_].size(); ++j) {
+                    MPConstraint* const c7= solver->MakeRowConstraint(-infinity, 0, "c7");
+                    c7->SetCoefficient((MPVariable*)Vec_Fii_j[i][i_][j], 1);
+                    c7->SetCoefficient((MPVariable*)Vec_Fii_j[i_][i][j], 1);
+                    for (auto it1 = Vec_Xijk[i].begin(); it1 != Vec_Xijk[i].end(); ++it1) {
+                        for (auto it2 = it1->begin(); it2 != it1->end(); ++it2) {
+                            c7->SetCoefficient(*it2, -1);
+                        }
+                    }
+                    MPConstraint* const c8= solver->MakeRowConstraint(-infinity, 0, "c8");
+                    c8->SetCoefficient((MPVariable*)Vec_Fii_j[i][i_][j], 1);
+                    c8->SetCoefficient((MPVariable*)(MPVariable*)Vec_Fii_j[i_][i][j], 1);
+                    for (auto it1 = Vec_Xijk[i_].begin(); it1 != Vec_Xijk[i_].end(); ++it1) {
+                        for (auto it2 = it1->begin(); it2 != it1->end(); ++it2) {
+                            c8->SetCoefficient(*it2, -1);
+                        }
+                    }
+
+                    MPConstraint* const c9= solver->MakeRowConstraint(-1, infinity, "c9");
+                    c9->SetCoefficient((MPVariable*)Vec_Fii_j[i][i_][j], 1);
+                    c9->SetCoefficient((MPVariable*)Vec_Fii_j[i_][i][j], 1);
+
+                    for (auto it1 = Vec_Xijk[i].begin(); it1 != Vec_Xijk[i].end(); ++it1) {
+                        for (auto it2 = it1->begin(); it2 != it1->end(); ++it2) {
+                            c9->SetCoefficient(*it2, -1);
+                        }
+                    }
+
+                    for (auto it1 = Vec_Xijk[i_].begin(); it1 != Vec_Xijk[i_].end(); ++it1) {
+                        for (auto it2 = it1->begin(); it2 != it1->end(); ++it2) {
+                            c9->SetCoefficient(*it2, -1);
+                        }
+                    }
+
+
+                    MPConstraint* const c10= solver->MakeRowConstraint(-infinity, 1, "c10");
+                    for (int x = 0; x < every_satellite_cov_window.size(); ++x) {
+                        if (activated_sat[x] == true) {
+                            c10->SetCoefficient((MPVariable*)Vec_Fii_j[i][i_][x], 1);
+                            c10->SetCoefficient((MPVariable*)Vec_Fii_j[i_][i][x], 1);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    LOG(INFO) << "Number of constraints = " << solver->NumConstraints();
+
+    // Maximize
+    MPObjective* const objective = solver->MutableObjective();
+    for (auto it1 = Vec_Xijk.begin(); it1 != Vec_Xijk.end(); ++it1) {
+        for (auto it2 = it1->begin(); it2 != it1->end(); ++it2) {
+//            if (activated_sat[distance(it1->begin(), it2)] == false)
+//                if (it2->size() == 0)
+//                    cout<<"确实没有东西在里面"<<endl;
+            if (activated_sat[distance(Vec_Xijk.begin(), it1)] == true) {
+                for (auto it3 = it2->begin(); it3 != it2->end(); ++it3) {
+                    int tar_num = distance(Vec_Xijk.begin(), it1);
+                    objective->SetCoefficient(*it3, all_targets_table[tar_num]._reward);
+                }
+            }
+            
+
+        }
+    }
+    
+//    objective->SetCoefficient(y, 1);
+    objective->SetMaximization();
+//
+    const MPSolver::ResultStatus result_status = solver->Solve();
+    // Check that the problem has an optimal solution.
+    if (result_status != MPSolver::OPTIMAL) {
+        LOG(FATAL) << "The problem does not have an optimal solution!";
+    }
+//
+    LOG(INFO) << "Solution:";
+    LOG(INFO) << "Objective value = " << objective->Value();
+    
+//    for (auto it1 = Vec_Xijk.begin(); it1 != Vec_Xijk.end(); ++it1) {
+//        for (auto it2 = it1->begin(); it2 != it1->end(); ++it2) {
+//            for (auto it3 = it2->begin(); it3 != it2->end(); ++it3) {
+//                LOG(INFO) << "variables= " << (*it3)->solution_value()<<'\t';
+//            }
+//            cout<<endl;
+//        }
+//        cout<<endl;
+//    }
+    
+    for (auto it = Vec_ti.begin(); it != Vec_ti.end(); ++it) {
+        cout<<"vairables ti"<<(*it)->solution_value()<<endl;
+    }
+//    LOG(INFO) << "x = " << x->solution_value();
+//    LOG(INFO) << "y = " << y->solution_value();
+//
+    LOG(INFO) << "\nAdvanced usage:";
+    LOG(INFO) << "Problem solved in " << solver->wall_time() << " milliseconds";
+    LOG(INFO) << "Problem solved in " << solver->iterations() << " iterations";
+    LOG(INFO) << "Problem solved in " << solver->nodes()
+            << " branch-and-bound nodes";
+}
 void SatelliteSchedulePlanning::algoChoiceAndSatAct()
 {
 //    vector<int> activated_sat;//可用卫星

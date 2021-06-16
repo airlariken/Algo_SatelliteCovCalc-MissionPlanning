@@ -18,4 +18,8 @@
 #include <list>
 using namespace std;
 
+//integer programming
+#include "ortools/linear_solver/linear_solver.h"
+#include <memory>
+
 #endif /* Header_h */

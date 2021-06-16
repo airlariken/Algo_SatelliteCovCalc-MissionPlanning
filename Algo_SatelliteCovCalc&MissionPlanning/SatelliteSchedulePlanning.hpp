@@ -197,6 +197,7 @@ public:
     void _setActivatedSat(vector<bool> activated_sat = {1,1,1,1,1,1,1,1,1});
     void algoChoiceAndSatAct();
     void greedyAlgo();
+    void integerAlgo();
     //预处理函数，非常重要，缩小解空间
     void _preprocessing();
     void InterativelyRemove();//循环处理冲突数为0的时间窗口，看看能不能分配
