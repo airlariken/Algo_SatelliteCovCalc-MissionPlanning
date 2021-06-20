@@ -218,6 +218,7 @@ public:
     
     //test&output fun
     inline void outputResult();
+    void outputGreedyAlgoResult();
 };
 
 

@@ -304,7 +304,7 @@ void SatelliteSchedulePlanning::greedyAlgo()
 //                        cout<<"\t\tloop3: "<<distance(it6->begin(), it7)<<endl;
                         for(auto it = it7->second.target_num_table.begin(); it != it7->second.target_num_table.end(); ) {
                             if (all_targets_table[*it].is_scheduled == 1) {
-                                cout<<"find target and delete"<<all_targets_table[*it].target_name<<endl;
+//                                cout<<"find target and delete"<<all_targets_table[*it].target_name<<endl;
                                 it = it7->second.target_num_table.erase(it);
                                 --it7->second.conflict_cnt;
                                 
@@ -336,9 +336,15 @@ void SatelliteSchedulePlanning::greedyAlgo()
    }
     cout<<"finish"<<endl;
     
+    outputGreedyAlgoResult();
 }
 
-
+void SatelliteSchedulePlanning::outputGreedyAlgoResult()
+{
+    for (auto it1 = scheduled_targets.begin(); it1 != scheduled_targets.end(); ++it1) {
+        cout<<it1->target_name<<'\t'<<it1->scheduled_time.first<<'\t'<<it1->scheduled_time.second<<endl;
+    }
+}
 //整数规划
 void SatelliteSchedulePlanning::integerAlgo(time_period limit)
 {
