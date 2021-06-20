@@ -4,7 +4,7 @@
 //
 //  Created by 陈梓玮 on 2021/6/2.
 //
-
+#include <deque>
 #include "SatelliteSchedulePlanning.hpp"
 int main(int argc, const char * argv[]) {
     

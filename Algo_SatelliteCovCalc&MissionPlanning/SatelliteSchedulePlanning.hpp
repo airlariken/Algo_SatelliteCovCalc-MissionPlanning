@@ -137,7 +137,8 @@ struct feasibleTimeIntervals
                 return t_p;
             }
         }
-        return time_period(-1,-1);
+        t_p.second = m.end()->first;
+        return t_p;
     }
     
     bool eraseScheduledTimePiece(vector<map<int, TimePieceInfo>>::iterator &it_m, map<int, TimePieceInfo>::iterator e_begin, map<int, TimePieceInfo>::iterator e_end) {
