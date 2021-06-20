@@ -13,7 +13,7 @@
 struct TargetScheduleInfo: public TargetInfo {
     bool is_scheduled = 0;
     int remaining_time = 0;
-    int scheduled_target_num = -1;
+    int scheduled_sate_num = -1;
     time_period scheduled_time = time_period(-1,-1);
     
     TargetScheduleInfo(string name, const EarthPos &p, const int &obs_t, const int &reward):TargetInfo(name, p, obs_t, reward), remaining_time(obs_t){}
@@ -128,6 +128,7 @@ struct feasibleTimeIntervals
         if (m.size() == 0)
             return time_period(-1,-1);
         int t_conflicts = m.begin()->second.conflict_cnt;
+        Vec_target_num.insert(m.begin()->second.target_num_table.begin(), m.begin()->second.target_num_table.end());
         t_p.first = m.begin()->first;
         for (auto it = m.begin(); it != m.end(); ++it) {
             if (it->second.conflict_cnt != t_conflicts) {
@@ -158,6 +159,17 @@ struct feasibleTimeIntervals
         if (it_m->size() == 0) {
             it_m = feasibleTimeIntervals_table.erase(it_m);
             return true;
+        }
+        return false;
+    }
+    //输入的秒数如果在里面则删除且返回true，如果不在则不执行任何操作返回false
+    bool SecondInsideDelete(const int &second) {
+        for (auto it = feasibleTimeIntervals_table.begin(); it != feasibleTimeIntervals_table.end(); ++it) {
+            auto fi = it->find(second);
+            if (fi != it->end()) {
+                it->erase(fi);
+                return true;
+            }
         }
         return false;
     }
@@ -199,7 +211,7 @@ public:
     void greedyAlgo();
     void integerAlgo(time_period limit = time_period(0, 3600*24));
     //预处理函数，非常重要，缩小解空间
-    void _preprocessing();
+    void _preprocessing(time_period limit = time_period(0, 3600*24));
     void InterativelyRemove();//循环处理冲突数为0的时间窗口，看看能不能分配
 //    void _combineTimePeriod();
     
@@ -249,7 +261,7 @@ inline bool SatelliteSchedulePlanning::_secondIsInTimeperiod(const time_period &
 inline void SatelliteSchedulePlanning::outputResult()
 {
     for (auto it = scheduled_targets.begin(); it != scheduled_targets.end(); ++it) {
-        cout<<it->target_name<<'\t'<<it->scheduled_time.first<<'\t'<<it->scheduled_time.first<<"target_num:"<<it->scheduled_target_num<<endl;
+        cout<<it->target_name<<'\t'<<it->scheduled_time.first<<'\t'<<it->scheduled_time.first<<"target_num:"<<it->scheduled_sate_num<<endl;
     }
 }
 

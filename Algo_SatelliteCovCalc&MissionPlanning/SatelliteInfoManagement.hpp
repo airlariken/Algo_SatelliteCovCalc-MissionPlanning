@@ -12,7 +12,7 @@
 #include "AllKindOfStruct.h"
 //文件个数宏定义
 #define SATELLITE_FILE_CNT 9
-#define TARGET_FILE_CNT 9
+#define TARGET_FILE_CNT 10
 
 struct SatelliteCovArea{
     vector<EarthPos> polygon_pos;       //记录多边形的所有顶点

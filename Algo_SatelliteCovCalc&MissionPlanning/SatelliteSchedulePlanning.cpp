@@ -83,8 +83,33 @@ void SatelliteSchedulePlanning::readAllSatCovWinFiles()
     }
 }
 
-void SatelliteSchedulePlanning::_preprocessing()
+void SatelliteSchedulePlanning::_preprocessing(time_period limit)
 {
+    for (auto it1 = every_satellite_cov_window.begin(); it1 != every_satellite_cov_window.end() ; ++it1) {
+        for (auto it2 = it1->begin() ; it2 != it1->end(); ++it2) {
+            for (auto it3 = it2->begin(); it3 != it2->end(); ) {
+                bool it3_erase_tag = 0;
+            
+                if (it3->second < limit.first) {
+                    it3 = it2->erase(it3);
+                    it3_erase_tag = 1;
+                }
+                if (it3->first >= limit.second) {
+                    it3 = it2->erase(it3);
+                    it3_erase_tag = 1;
+                }
+                if (it3->first < limit.first) {
+                    it3->first = limit.first;
+                }
+                if (it3->second > limit.second) {
+                    it3->second = limit.second;
+                }
+                if (it3_erase_tag == 0)
+                    ++it3;
+            }
+        }
+    }
+    
     //对于一个卫星
     //如果某一个观察窗口的长度小于该target所需观察时间，直接删除
     for (auto it1 = every_satellite_cov_window.begin(); it1 != every_satellite_cov_window.end(); ++it1) {
@@ -100,7 +125,6 @@ void SatelliteSchedulePlanning::_preprocessing()
         }
     }
     
- 
     //将单个卫星的所有观测窗口合并，但要保留时间窗口的起点和终点，方便后续检测和处理
     for (auto it1 = every_satellite_cov_window.begin(); it1 != every_satellite_cov_window.end(); ++it1) {
         feasibleTimeIntervals temp_TI;
@@ -116,6 +140,38 @@ void SatelliteSchedulePlanning::_preprocessing()
         all_sate_feasible_time_interval.push_back(temp_TI);
         (--all_sate_feasible_time_interval.end())->dividedInterval();
     }
+    
+    
+    
+    
+//    for (auto it1 = every_satellite_cov_window.begin(); it1 != every_satellite_cov_window.end(); ++it1) {
+//        if (activated_sat[it1-every_satellite_cov_window.begin()] == false)//没被激活不算进去
+//            continue;
+//        for (auto it2 = it1->begin(); it2 != it1->end(); ++it2) {
+//            if (all_targets_table[it2-it1->begin()].is_scheduled == 1)      //target的is_scheduled为1，则不会在访问该target任何信息
+//                continue;
+//            for (auto it3 = it2->begin(); it3 != it2->end(); ++it3) {
+//                if (getDuration(*it3) > all_targets_table[it2-it1->begin()].observe_time) {
+//                    int target_num = distance(it1->begin(), it2);
+//                    cout<<"target_num"<<target_num<<"is scheduled!(sate_num:"<<distance(every_satellite_cov_window.begin(), it1)<<')'<<endl;
+//                    all_targets_table[target_num].is_scheduled = 1;
+//                    all_targets_table[target_num].scheduled_sate_num = distance(every_satellite_cov_window.begin(), it1);
+//                    total_reward += all_targets_table[target_num]._reward;//加奖励！！！！！！
+//                    all_targets_table[target_num].scheduled_time = *it3;
+//                    scheduled_targets.push_back(all_targets_table[target_num]);
+//
+//                    int handling_time = satellite_handling_time[distance(every_satellite_cov_window.begin(), it1)];
+//                    //如果handling_time时间段存在feasible_time_interval则删除该interval
+//                    for(auto it = all_sate_feasible_time_interval.begin(); it != all_sate_feasible_time_interval.end(); ++it) {
+//                        for (int start = it3->first + handling_time; start < it3->second + handling_time; ++start)
+//                            it->SecondInsideDelete(start);
+//                    }
+//                }
+//            }
+//        }
+//    }
+    
+    
     
     //循环处理单覆盖情况
     InterativelyRemove();
@@ -136,7 +192,7 @@ void SatelliteSchedulePlanning::InterativelyRemove()
                //找到冲突数为0的时间段，直接分配出去
                for (auto it2 = it1->feasibleTimeIntervals_table.begin(); it2 != it1->feasibleTimeIntervals_table.end(); ) {
                    auto t_it = it2->begin();//map.begin
-                   bool is_erase = true;//后续有个函数要对it2的迭代器指向的内容进行erase，故要判断it2是否被erase决定其是否要执行++it2的操作
+                   bool is_erase = false;//后续有个函数要对it2的迭代器指向的内容进行erase，故要判断it2是否被erase决定其是否要执行++it2的操作
                    while (t_it != it2->end()) {
                        is_erase = false;
                        int target_num = -1;
@@ -147,15 +203,23 @@ void SatelliteSchedulePlanning::InterativelyRemove()
                        int t_duration = getDuration(t_p);
             //                cout<<"target_num: "<<target_num<<"duration: "<<t_duration<<endl;
                        //未分配且冲突数为0的直接分配出去
-                       if (all_targets_table[target_num].is_scheduled == 0 && t_duration >= satellite_handling_time[it1-all_sate_feasible_time_interval.begin()] + all_targets_table[target_num].observe_time) {
+//                       if (all_targets_table[target_num].is_scheduled == 0 && t_duration >= satellite_handling_time[it1-all_sate_feasible_time_interval.begin()] + all_targets_table[target_num].observe_time) {
+                       if (all_targets_table[target_num].is_scheduled == 0 && t_duration >=  all_targets_table[target_num].observe_time) {
                            //安排分配
-                           cout<<"target_num"<<target_num<<"is scheduled!(sate_num:"<<it1-all_sate_feasible_time_interval.begin()<<')'<<endl;
+                           cout<<"target"<<all_targets_table[target_num].target_name<<"is scheduled!(sate_num:"<<it1-all_sate_feasible_time_interval.begin()<<')'<<endl;
                            all_targets_table[target_num].is_scheduled = 1;
-                           all_targets_table[target_num].scheduled_target_num =(int) distance(all_sate_feasible_time_interval.begin(), it1);
+                           all_targets_table[target_num].scheduled_sate_num =(int)distance(all_sate_feasible_time_interval.begin(), it1);
                            total_reward += all_targets_table[target_num]._reward;//加奖励！！！！！！
                            all_targets_table[target_num].scheduled_time = t_p;
                            scheduled_targets.push_back(all_targets_table[target_num]);
-                           is_erase = it1->eraseScheduledTimePiece(it2, it2->find(t_p.first), it2->find(t_p.second));//删除该时间片
+                           
+                           //判断贪心选择后卫星处理时间内是否还在time_feasible_interval中，如果在一并删除该time_piece
+                           auto fi_stop = it2->find(t_p.first + all_targets_table[target_num].observe_time + satellite_handling_time[it1-all_sate_feasible_time_interval.begin()]);
+                           if (fi_stop != it2->end())
+                               is_erase = it1->eraseScheduledTimePiece(it2, it2->find(t_p.first), fi_stop);//删除该时间片
+                           else
+                               is_erase = it1->eraseScheduledTimePiece(it2, it2->find(t_p.first), it2->end());//删除该时间片
+            
                            is_finished = 0;
                            break;
                        }
@@ -169,18 +233,26 @@ void SatelliteSchedulePlanning::InterativelyRemove()
             //把已分配的target从冲突计数中删除
             for (auto it1 = all_sate_feasible_time_interval.begin(); it1 != all_sate_feasible_time_interval.end(); ++it1){
                for (auto it2 = it1->feasibleTimeIntervals_table.begin(); it2 != it1->feasibleTimeIntervals_table.end(); ++it2) {
-                   for (auto it3 = it2->begin(); it3 != it2->end(); ++it3) {
-                       
+                   for (auto it3 = it2->begin(); it3 != it2->end(); ) {
+                       bool is_erase_it3 = 0;
                        for (auto it = it3->second.target_num_table.begin(); it != it3->second.target_num_table.end(); ) {
                            auto fi = find_if(scheduled_targets.begin(), scheduled_targets.end(), findTarget_with_Target_name(all_targets_table[*it].target_name));
                            if (fi != scheduled_targets.end()) {            //找到了
             //                        cout<<"找到已经分配的target "<<all_targets_table[*it].target_name<<"并且删除"<<endl;
                                it3->second.conflict_cnt--;
                                it = it3->second.target_num_table.erase(it);
+                               if (it3->second.conflict_cnt == -1) {    //意味着应该删掉该timepiece了
+                                   it3 = it2->erase(it3);
+                                   is_erase_it3 = 1;
+                                   break;
+                               }
                                continue;
                            }
                            ++it;
                        }
+                       if (is_erase_it3 == 0)
+                           ++it3;
+                       
                    }
                }
             }
@@ -192,68 +264,68 @@ void SatelliteSchedulePlanning::greedyAlgo()
 {
     //贪心选择：按照收益/时间的大小进行排序，在可行时间段中按该顺序选择target进行观测，直到该区间无法再加入新的目标观测为止
     for (auto it1 = all_sate_feasible_time_interval.begin(); it1 != all_sate_feasible_time_interval.end(); ++it1) {
-                   if (it1->TI.time_pieces.size() == 0)//如果该卫星没有被activated 则为空
-                       continue;
-                   //找到冲突数为0的时间段，直接分配出去
-                   for (auto it2 = it1->feasibleTimeIntervals_table.begin(); it2 != it1->feasibleTimeIntervals_table.end(); ++it2) {
-                       auto t_it = it2->begin();//map.begin
+       if (it1->TI.time_pieces.size() == 0)//如果该卫星没有被activated 则为空
+           continue;
+       //找到冲突数为0的时间段，直接分配出去
+       for (auto it2 = it1->feasibleTimeIntervals_table.begin(); it2 != it1->feasibleTimeIntervals_table.end(); ++it2) {
+           auto t_it = it2->begin();//map.begin
 //                       bool is_erase = true;//后续有个函数要对it2的迭代器指向的内容进行erase，故要判断it2是否被erase决定其是否要执行++it2的操作
-                       int temp_scheduling_target = -1;
-                       while (t_it != it2->end()) {
+           int temp_scheduling_target = -1;
+           while (t_it != it2->end()) {
 //                           is_erase = false;
-                           set<int> t_tars_num;
-                           time_period t_p = feasibleTimeIntervals::getBeginTimePeriod(*it2, t_tars_num);
-                           if (t_p.first == -1)
-                               break;
-                           //得到当前时间段可安排的卫星
-                           vector<pair<TargetScheduleInfo, int>>t_reward_list;
-                           for (auto it = t_tars_num.begin(); it != t_tars_num.end(); ++it) {
-                               t_reward_list.push_back(pair<TargetScheduleInfo, int>(all_targets_table[*it], distance(t_tars_num.begin(), it)));
-                           }
-                           
-                           //按照奖励比时间排序
-                           sort(t_reward_list.begin(), t_reward_list.end(), sortMinReward());
-                           bool is_scheduled = 0;
-                           for (auto it = t_reward_list.begin(); it != t_reward_list.end(); ++it) {
+               set<int> t_tars_num;
+               time_period t_p = feasibleTimeIntervals::getBeginTimePeriod(*it2, t_tars_num);
+               if (t_p.first == -1)
+                   break;
+               //得到当前时间段可安排的卫星
+               vector<pair<TargetScheduleInfo, int>>t_reward_list;
+               for (auto it = t_tars_num.begin(); it != t_tars_num.end(); ++it) {
+                   t_reward_list.push_back(pair<TargetScheduleInfo, int>(all_targets_table[*it], distance(t_tars_num.begin(), it)));
+               }
+               
+               //按照奖励比时间排序
+               sort(t_reward_list.begin(), t_reward_list.end(), sortMinReward());
+               bool is_scheduled = 0;
+               for (auto it = t_reward_list.begin(); it != t_reward_list.end(); ++it) {
 //                               auto &a_trg_tbl = all_targets_table;//名字太长了我草，我想换个名字
-                               if (getDuration(t_p) >= it->first.remaining_time + satellite_handling_time[distance(all_sate_feasible_time_interval.begin(), it1)]) {
-                                   //分配！
-                                   int target_num = it->second;
-                                   cout<<"target_num"<<target_num<<"is scheduled!(sate_num:"<<it1-all_sate_feasible_time_interval.begin()<<')'<<endl;
-                                   all_targets_table[target_num].is_scheduled = 1;
-                                   all_targets_table[target_num].scheduled_target_num =(int) distance(all_sate_feasible_time_interval.begin(), it1);
-                                   total_reward += all_targets_table[target_num]._reward;//加奖励！！！！！！
-                                   if (all_targets_table[target_num].scheduled_time.first == -1) {
-                                       all_targets_table[target_num].scheduled_time = t_p;
-                                   }
-                                   else
-                                       all_targets_table[target_num].scheduled_time.second = t_p.second;
-                                   
-                                   scheduled_targets.push_back(all_targets_table[target_num]);
-//                                   is_erase = it1->eraseScheduledTimePiece(it2, it2->find(t_p.first), it2->find(t_p.second));//删除该时间片
-                                   is_scheduled = 1;
-                                   break;
-                               }
-                               if (is_scheduled == 0) {         //意味着上面没有分配到，则暂时分配最有性价比的那个
-                                   cout<<"this interval cant be scheduled at once!"<<endl;
-                                   if (temp_scheduling_target != -1 && temp_scheduling_target != t_reward_list.begin()->second) {   //换了个性价比更高的卫星
-                                       all_targets_table[temp_scheduling_target].remaining_time =  all_targets_table[temp_scheduling_target].observe_time;//将原卫星已分配时间则恢复回去
-                                       all_targets_table[temp_scheduling_target].scheduled_time = time_period(-1,-1);
-                                   }
-                                   temp_scheduling_target = t_reward_list.begin()->second;
-                                   all_targets_table[temp_scheduling_target].remaining_time -= getDuration(t_p);//分配该时间段给该目标，故该目标剩余观察时间减少
-                               }
-                           }
-
-                           if (temp_scheduling_target != 1 && all_targets_table[temp_scheduling_target].is_scheduled == 0) {
-                               all_targets_table[temp_scheduling_target].remaining_time =  all_targets_table[temp_scheduling_target].observe_time;//如果依旧未分配则恢复回去
-                               all_targets_table[temp_scheduling_target].scheduled_time = time_period(-1,-1);
-                           }
+                   if (getDuration(t_p) >= it->first.remaining_time + satellite_handling_time[distance(all_sate_feasible_time_interval.begin(), it1)]) {
+                       //分配！
+                       int target_num = it->second;
+                       cout<<"target"<<all_targets_table[target_num].target_name<<"is scheduled!(sate_num:"<<it1-all_sate_feasible_time_interval.begin()<<')'<<endl;
+                       all_targets_table[target_num].is_scheduled = 1;
+                       all_targets_table[target_num].scheduled_sate_num =(int) distance(all_sate_feasible_time_interval.begin(), it1);
+                       total_reward += all_targets_table[target_num]._reward;//加奖励！！！！！！
+                       if (all_targets_table[target_num].scheduled_time.first == -1) {
+                           all_targets_table[target_num].scheduled_time = t_p;
                        }
+                       else
+                           all_targets_table[target_num].scheduled_time.second = t_p.second;
+                       
+                       scheduled_targets.push_back(all_targets_table[target_num]);
+//                                   is_erase = it1->eraseScheduledTimePiece(it2, it2->find(t_p.first), it2->find(t_p.second));//删除该时间片
+                       is_scheduled = 1;
+                       break;
+                   }
+                   if (is_scheduled == 0) {         //意味着上面没有分配到，则暂时分配最有性价比的那个
+                       cout<<"this interval cant be scheduled at once!"<<endl;
+                       if (temp_scheduling_target != -1 && temp_scheduling_target != t_reward_list.begin()->second) {   //换了个性价比更高的卫星
+                           all_targets_table[temp_scheduling_target].remaining_time =  all_targets_table[temp_scheduling_target].observe_time;//将原卫星已分配时间则恢复回去
+                           all_targets_table[temp_scheduling_target].scheduled_time = time_period(-1,-1);
+                       }
+                       temp_scheduling_target = t_reward_list.begin()->second;
+                       all_targets_table[temp_scheduling_target].remaining_time -= getDuration(t_p);//分配该时间段给该目标，故该目标剩余观察时间减少
+                   }
+               }
+
+               if (temp_scheduling_target != 1 && all_targets_table[temp_scheduling_target].is_scheduled == 0) {
+                   all_targets_table[temp_scheduling_target].remaining_time =  all_targets_table[temp_scheduling_target].observe_time;//如果依旧未分配则恢复回去
+                   all_targets_table[temp_scheduling_target].scheduled_time = time_period(-1,-1);
+               }
+           }
 //                       if (is_erase == false)
 //                           ++it2;
-                   }
-                }
+       }
+    }
 }
 
 
@@ -291,13 +363,13 @@ void SatelliteSchedulePlanning::integerAlgo(time_period limit)
     std::unique_ptr<MPSolver> solver(MPSolver::CreateSolver("SCIP"));
     
     SatParameters parameters;
-//    parameters.set_max_time_in_seconds(10.0);
-//    solver->InterruptSolve();
+
     auto status = solver->SetNumThreads(16);
     using namespace absl;
     
 //    solver->SetTimeLimit(100);
-    solver->set_time_limit(5*60*1000);//5mins
+    solver->set_time_limit(1*60*1000);//1mins
+    
     
     if (!solver) {
     LOG(WARNING) << "SCIP solver unavailable.";
@@ -328,24 +400,24 @@ void SatelliteSchedulePlanning::integerAlgo(time_period limit)
     vector<MPVariable*> Vec_ti;
     for (auto it = all_targets_table.begin(); it != all_targets_table.end(); ++it) {
         int tar_num = distance(all_targets_table.begin(), it);
-        int Sbeg = infinity, Send = 0;
-        for (int i = 0; i < every_satellite_cov_window.size(); ++i) {
-            for (int k = 0; k < every_satellite_cov_window[i][tar_num].size(); ++k) {
-                if (every_satellite_cov_window[i][tar_num][k].first < Sbeg) {
-                    Sbeg = every_satellite_cov_window[i][tar_num][k].first;
-                }
-                if (every_satellite_cov_window[i][tar_num][k].second > Send) {
-                    Send = every_satellite_cov_window[i][tar_num][k].second;
-                }
-            }
-        }
-//        Vec_ti.push_back(solver->MakeIntVar(0, infinity, "ti"));
+//        int Sbeg = infinity, Send = 0;
+//        for (int i = 0; i < every_satellite_cov_window.size(); ++i) {
+//            for (int k = 0; k < every_satellite_cov_window[i][tar_num].size(); ++k) {
+//                if (every_satellite_cov_window[i][tar_num][k].first < Sbeg) {
+//                    Sbeg = every_satellite_cov_window[i][tar_num][k].first;
+//                }
+//                if (every_satellite_cov_window[i][tar_num][k].second > Send) {
+//                    Send = every_satellite_cov_window[i][tar_num][k].second;
+//                }
+//            }
+//        }
+        Vec_ti.push_back(solver->MakeIntVar(0, infinity, "ti"));
         //优化缩小解空间
-        cout<<tar_num<<" :"<<Sbeg<<'\t'<<Send<<endl;
-        if (Sbeg == infinity)
-            Vec_ti.push_back(solver->MakeIntVar(0, 1, "ti"));
-        else
-            Vec_ti.push_back(solver->MakeIntVar(Sbeg-1, Send+1, "ti"));
+//        cout<<tar_num<<" :"<<Sbeg<<'\t'<<Send<<endl;
+//        if (Sbeg == infinity)
+//            Vec_ti.push_back(solver->MakeIntVar(0, 1, "ti"));
+//        else
+//            Vec_ti.push_back(solver->MakeIntVar(Sbeg-1, Send+1, "ti"));
     }
 //
     
