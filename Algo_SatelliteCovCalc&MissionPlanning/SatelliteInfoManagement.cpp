@@ -73,9 +73,10 @@ ostream& operator<<(ostream& co,const EarthTime& t) {
 void SatelliteInfoManagement::readSatInfoFile()
 {
     for (int i = 0; i < SATELLITE_FILE_CNT; ++i){
-        string path = "/Users/chenziwei/Desktop/算法课设/Data/SatelliteInfo/SatCoverInfo_.txt";
+        string path = "/Users/chenziwei/Desktop/Algo_Assignment/Data/SatelliteInfo/SatCoverInfo_";
         const char a = i+'0';   string t;  t+=a;
-        path.insert(70, t.c_str());
+        t += ".txt";
+        path.insert(path.length(), t.c_str());
         
         ifstream fin(path);
         if (fin.fail()) {
@@ -120,9 +121,18 @@ void SatelliteInfoManagement::readSatInfoFile()
 void SatelliteInfoManagement::readTarInfoFile()
 {
     for (int i = 0; i < TARGET_FILE_CNT; ++i) {
-        string path = "/Users/chenziwei/Desktop/算法课设/Data/TargetInfo/target.txt";
-        const char a = i + '1';   string t;  t+=a;
-               path.insert(60, t.c_str());
+        string path = "/Users/chenziwei/Desktop/Algo_Assignment/Data/TargetInfo/target";
+        string t;
+        if (i == TARGET_FILE_CNT - 1)
+            t+= "10";
+        else {
+            const char a = i + '1';
+            t+=a;
+        }
+        
+
+        t+= ".txt";      path.insert(path.length(), t.c_str());
+        
         ifstream fin(path);
         if (fin.fail()) {
             cerr<<"fail to open TargetInfofile!"<<endl;
@@ -142,7 +152,6 @@ void SatelliteInfoManagement::readTarInfoFile()
         all_target_table.push_back(tmp_vec);
         fin.close();
     }
-
     return;
 }
 void SatelliteInfoManagement::saveTarName(const int &num)
@@ -353,7 +362,6 @@ void SatelliteInfoManagement::calAllTargetCoverage()
 
 void SatelliteInfoManagement::_combineCov(vector<pair<EarthTime, int>> target_i_window_of_all_sat, ofstream &fout, const int &target_num, const int &file_num)
 {
-    
     if (target_i_window_of_all_sat.size() == 0){
         cerr<<"target_i_window_of_all_sat is empty (target_num:"<<target_num<<')'<<endl;
         return;
@@ -397,8 +405,8 @@ void SatelliteInfoManagement::_combineCov(vector<pair<EarthTime, int>> target_i_
     fout<<"target_num:"<<target_num<<endl;
         
     for (int j = 0; j < all_satellite_window_period.size(); ++j) {
-        fout<<getTime(all_satellite_window_period[j].first, satellite_1_starttime)<<"      "<<getTime(all_satellite_window_period[j].second, satellite_1_starttime)<<endl;
-//        fout<<all_satellite_window_period[j].first<<'\t'<<all_satellite_window_period[j].second<<endl;
+//        fout<<getTime(all_satellite_window_period[j].first, satellite_1_starttime)<<"      "<<getTime(all_satellite_window_period[j].second, satellite_1_starttime)<<endl;
+        fout<<all_satellite_window_period[j].first<<'\t'<<all_satellite_window_period[j].second<<endl;
     }
 //    mutex_uncover_cal = 1;//可以计算时间间隔，打开mutex
     //直接继续计算时间间隔
@@ -453,7 +461,8 @@ void SatelliteInfoManagement::_calUncoverSegement(const vector<time_period> &all
         if (it->second- it->first < min_period) {
             min_period = it->second- it->first;
         }
-        fout<<getTime(it->first, satellite_1_starttime)<<"      "<<getTime(it->second, satellite_1_starttime)<<endl;
+//        fout<<getTime(it->first, satellite_1_starttime)<<"      "<<getTime(it->second, satellite_1_starttime)<<endl;
+        fout<<it->first<<'\t'<<it->second<<endl;
     }
     
     fout<<"max_period"<<max_period<<'\t'<<"min_period"<<min_period<<'\t'<<"average_period"<<((float)average_period/uncover_window_period.size())<<endl;
@@ -467,6 +476,7 @@ void SatelliteInfoManagement::_doubleCov(set<int> &target_k_double_cov_windows, 
 
     if (target_k_double_cov_windows.size() == 0){
         cerr<<"target_k_double_cov_windows is empty (target_num:"<<target_num<<')'<<endl;
+        fout<<"target_num:"<<target_num<<endl;
         return;
     }
     vector<time_period> all_satellite_window_period;//所有卫星并集的时间段求
@@ -506,14 +516,11 @@ void SatelliteInfoManagement::_doubleCov(set<int> &target_k_double_cov_windows, 
     fout<<"target_num:"<<target_num<<endl;
         
     for (int j = 0; j < all_satellite_window_period.size(); ++j) {
-        fout<<getTime(all_satellite_window_period[j].first, satellite_1_starttime)<<"      "<<getTime(all_satellite_window_period[j].second, satellite_1_starttime)<<endl;
-//        fout<<all_satellite_window_period[j].first<<'\t'<<all_satellite_window_period[j].second<<endl;
+//        fout<<getTime(all_satellite_window_period[j].first, satellite_1_starttime)<<"      "<<getTime(all_satellite_window_period[j].second, satellite_1_starttime)<<endl;
+        fout<<all_satellite_window_period[j].first<<'\t'<<all_satellite_window_period[j].second<<endl;
     }
 
 }
-
-
-
 
 //SatelliteCovArea
 

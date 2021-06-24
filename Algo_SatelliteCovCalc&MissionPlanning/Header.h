@@ -16,6 +16,7 @@
 #include <map>
 #include <set>
 #include <list>
+#include <string>
 using namespace std;
 
 //integer programming
@@ -25,5 +26,6 @@ using namespace std;
 #include "ortools/sat/cp_model.h"
 #include "ortools/sat/model.h"
 #include "ortools/sat/sat_parameters.pb.h"
+#include <time.h>
 
 #endif /* Header_h */

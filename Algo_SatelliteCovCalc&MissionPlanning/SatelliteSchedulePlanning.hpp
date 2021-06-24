@@ -10,6 +10,11 @@
 
 #include "SatelliteInfoManagement.hpp"
 
+//GenAlgo
+#define MUTATION_RATE 8 //概率倒数
+#define GENERATIONS 10
+#include <random>
+
 struct TargetScheduleInfo: public TargetInfo {
     bool is_scheduled = 0;
     int remaining_time = 0;
@@ -114,7 +119,7 @@ struct feasibleTimeIntervals
             }
             if (start_tag == 1 && it->second.conflict_cnt > t_minconflicts) {
                 t_p.second = it->first;
-                cout<<"conflicts times:"<<t_minconflicts<<endl;
+//                cout<<"conflicts times:"<<t_minconflicts<<endl;
                 return t_p;
             }
         }
@@ -208,18 +213,65 @@ public:
     inline bool _secondIsInTimeperiod(const time_period &p, const int &cnt_seconds);//该秒cnt_seconds在时间段p内返回true
 //算法部分
     void _setActivatedSat(vector<bool> activated_sat = {1,1,1,1,1,1,1,1,1});
-    void algoChoiceAndSatAct();
+    
     void greedyAlgo();
+    void heuristicAlgo();
     void integerAlgo(time_period limit = time_period(0, 3600*24));
     //预处理函数，非常重要，缩小解空间
-    void _preprocessing(time_period limit = time_period(0, 3600*24));
+    void _preprocessing(time_period limit = time_period(0, 3600*24), string path_name_add = "");
     void InterativelyRemove();//循环处理冲突数为0的时间窗口，看看能不能分配
 //    void _combineTimePeriod();
     
+    
+    //第三题
+    void DPAlgo();
+    void GeneticAlgo();
+    void readScheduledTarInfFile(int file_num);
     //test&output fun
     inline void outputResult();
     void outputGreedyAlgoResult();
+    
+    
+    
+    struct Gen
+    {
+        int fitness;
+        vector<bool> code;
+        
+        void resizeCode(int code_cnt){
+            code.resize(code_cnt, 0);oiol;?
+        }
+    };
+    struct Genetic_Algo
+    {
+        vector<TargetInfo> GenAlgo_target_table;
+        vector<Gen*> gen_table;
+        mt19937 e;
+        int MaxMemroy = 600;
+    public:
+        //constructor
+        Genetic_Algo(int n, int tar_cnt, vector<TargetInfo> tf) : GenAlgo_target_table(tf){
+            for (int i = 0; i < n; ++i)
+            gen_table.push_back(new Gen);
+        }
+        void ini();
+        void mainGeneticFun();
+        void coding();
+        double fx(Gen g);
+        bool isFeasible(Gen g);
+        void evalFitness();
+        void selection();
+        void crossOver(Gen* g1, Gen* g2);
+        void mutation(Gen* g);
+        
+        struct fitnessComp{
+            bool operator()(Gen* g1, Gen* g2){
+                return g1->fitness < g2->fitness;
+            }
+        };
+    };
 };
+
 
 
 

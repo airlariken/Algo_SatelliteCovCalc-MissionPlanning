@@ -206,6 +206,7 @@
 		588028CA2678CED4003CC9ED /* libOsiCommonTests.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libOsiCommonTests.a; sourceTree = "<group>"; };
 		588028CB2678CED4003CC9ED /* libCbc.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libCbc.a; sourceTree = "<group>"; };
 		588028CC2678CED4003CC9ED /* libabsl_civil_time.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libabsl_civil_time.a; sourceTree = "<group>"; };
+		5893CC76268035530036EA92 /* test.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test.txt; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -314,6 +315,7 @@
 			isa = PBXGroup;
 			children = (
 				585E47782667101000E91DEB /* main.cpp */,
+				5893CC76268035530036EA92 /* test.txt */,
 				585E47802667108D00E91DEB /* SatelliteInfoManagement.cpp */,
 				582CCE3A266B910400474085 /* SatelliteSchedulePlanning.cpp */,
 				586050BD266A4EB900677745 /* Readme.md */,
