@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VariablesViewState
+   version = "1.0">
+   <ContextStates>
+      <ContextState
+         contextName = "SatelliteSchedulePlanning::Genetic_Algo::ini():SatelliteSchedulePlanning.cpp">
+      </ContextState>
+      <ContextState
+         contextName = "SatelliteSchedulePlanning::Genetic_Algo::selection():SatelliteSchedulePlanning.cpp">
+      </ContextState>
+      <ContextState
+         contextName = "SatelliteSchedulePlanning::Genetic_Algo::isFeasible(SatelliteSchedulePlanning::Gen):SatelliteSchedulePlanning.cpp">
+      </ContextState>
+      <ContextState
+         contextName = "SatelliteSchedulePlanning::Genetic_Algo::mainGeneticFun():SatelliteSchedulePlanning.cpp">
+      </ContextState>
+      <ContextState
+         contextName = "main:main.cpp">
+      </ContextState>
+      <ContextState
+         contextName = "SatelliteSchedulePlanning::greedyAlgo():SatelliteSchedulePlanning.cpp">
+         <PersistentStrings>
+            <PersistentString
+               value = "*it">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+   </ContextStates>
+</VariablesViewState>

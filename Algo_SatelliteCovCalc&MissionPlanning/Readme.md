@@ -13,6 +13,8 @@
 [Ortools](https://developers.google.cn/optimization/introduction/overview)
 
 # File structure 
+![类视图](photo/SatelliteInfoManagement类视图.png)
+
 - Header.h
   - this .h file is used to include some necessary headers
 - AllKindOfStruct.h

@@ -31,7 +31,7 @@ struct SatelliteCovArea{
     
     bool isInside_circle(const EarthPos &p) const;
     bool isInside_polygon(const EarthPos &p) const;
-    inline static float transformedX(const float& x, const float &y) {
+    static float transformedX(const float& x, const float &y) {
         return x * cos(M_PI / (float)180 * fabs(y));
     }
 };
@@ -61,7 +61,7 @@ public:
     void calAllTargetCoverage();
     void _saveEverySateObsWindow(vector<vector<pair<EarthTime, int>>>& target_i_window, ofstream &fout, const int &target_num);//
     void _combineCov(vector<pair<EarthTime, int>> target_i_window_of_all_sat, ofstream &fout, const int &target_num, const int &file_num);//合并覆盖窗口
-    inline void _doubleCov(set<int> &target_k_double_cov_windows, ofstream &fout, const int &target_num);//二重或以上覆盖窗口
+    void _doubleCov(set<int> &target_k_double_cov_windows, ofstream &fout, const int &target_num);//二重或以上覆盖窗口
     void _calUncoverSegement(const vector<time_period> &all_satellite_window_period, const int &file_num, const int &target_num);//计算时间窗口
 //    void _combine_coverage();//求所有卫星对单个target时间窗口的并集
     //test
