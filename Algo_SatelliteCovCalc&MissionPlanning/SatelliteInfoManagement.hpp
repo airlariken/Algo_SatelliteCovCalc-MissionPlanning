@@ -14,6 +14,8 @@
 #define SATELLITE_FILE_CNT 9
 #define TARGET_FILE_CNT 10
 
+// @this .h and related .cpp file is used for Q1 problems' solutions
+
 struct SatelliteCovArea{
     vector<EarthPos> polygon_pos;       //记录多边形的所有顶点
 //    EarthPos circle_center;

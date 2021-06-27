@@ -7,22 +7,6 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "0650B65D-A518-48FD-92D5-0756B7A9DA59"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "Algo_SatelliteCovCalc&amp;MissionPlanning/SatelliteSchedulePlanning.hpp"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "140"
-            endingLineNumber = "140"
-            landmarkName = "getBeginTimePeriod(m, Vec_target_num)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
             uuid = "FD5ACF3E-3CA6-43C6-B38E-1B1D33B1F367"
             shouldBeEnabled = "No"
             ignoreCount = "0"

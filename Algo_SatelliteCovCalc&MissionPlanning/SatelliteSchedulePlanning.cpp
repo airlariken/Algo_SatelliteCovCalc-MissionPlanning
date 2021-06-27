@@ -137,7 +137,7 @@ void SatelliteSchedulePlanning::_preprocessing(time_period limit, string path_na
     
     //将单个卫星的所有观测窗口合并，但要保留时间窗口的起点和终点，方便后续检测和处理
     for (auto it1 = every_satellite_cov_window.begin(); it1 != every_satellite_cov_window.end(); ++it1) {
-        feasibleTimeIntervals temp_TI;
+        FeasibleTimeIntervals temp_TI;
         if (activated_sat[it1-every_satellite_cov_window.begin()] == false) {//没被激活不算进去
             all_sate_feasible_time_interval.push_back(temp_TI);
             continue;
@@ -255,7 +255,7 @@ void SatelliteSchedulePlanning::InterativelyRemove()
                while (t_it != it2->end()) {
                    is_erase = false;
                    int target_num = -1;
-                   time_period t_p = feasibleTimeIntervals::findNextNoConflictTimePeriod(*it2, t_it, target_num);
+                   time_period t_p = FeasibleTimeIntervals::findNextNoConflictTimePeriod(*it2, t_it, target_num);
                    if (t_p.first == -1) {
                        break;
                    }
@@ -332,7 +332,7 @@ void SatelliteSchedulePlanning::greedyAlgo()
         while (it2 != it1->feasibleTimeIntervals_table.end()) {
             bool it2_is_erase = false;
             set<int> t_tars_num;
-            time_period t_p = feasibleTimeIntervals::getBeginTimePeriod(*it2, t_tars_num);
+            time_period t_p = FeasibleTimeIntervals::getBeginTimePeriod(*it2, t_tars_num);
             if (t_p.first == -1 || t_tars_num.size() == 0)
                break;
             //得到当前时间段可安排的卫星
@@ -902,7 +902,7 @@ void SatelliteSchedulePlanning::heuristicAlgo()
             while (it2 != it1->feasibleTimeIntervals_table.end()) {
                 bool it2_is_erase = false;
                 set<int> t_tars_num;
-                time_period t_p = feasibleTimeIntervals::getBeginTimePeriod(*it2, t_tars_num);
+                time_period t_p = FeasibleTimeIntervals::getBeginTimePeriod(*it2, t_tars_num);
                 if (t_p.first == -1 || t_tars_num.size() == 0)
                    break;
                 //得到当前时间段可安排的卫星
@@ -1084,22 +1084,22 @@ void SatelliteSchedulePlanning::Genetic_Algo::mutation(Gen* g)//变异
         }
     }
 }
-void SatelliteSchedulePlanning::Genetic_Algo::coding()
-{
-    static uniform_real_distribution<double> r(0,1);
-    for (int i = 0; i < gen_table.size(); ++i) {
-        //一直尝试构建基因到符合内存限制条件
-        do {
-            for (int j = 0;  j < gen_table[i]->code.size(); ++j) {
-                double t = r(e);
-                if (t < threshod)
-                    gen_table[i]->code[j] = 1;
-                else
-                    gen_table[i]->code[j] = 0;
-            }
-        }while(!isFeasible(*gen_table[i]));
-    }
-}
+//void SatelliteSchedulePlanning::Genetic_Algo::coding()
+//{
+//    static uniform_real_distribution<double> r(0,1);
+//    for (int i = 0; i < gen_table.size(); ++i) {
+//        //一直尝试构建基因到符合内存限制条件
+//        do {
+//            for (int j = 0;  j < gen_table[i]->code.size(); ++j) {
+//                double t = r(e);
+//                if (t < threshod)
+//                    gen_table[i]->code[j] = 1;
+//                else
+//                    gen_table[i]->code[j] = 0;
+//            }
+//        }while(!isFeasible(*gen_table[i]));
+//    }
+//}
 
 bool SatelliteSchedulePlanning::Genetic_Algo::isFeasible(Gen g)
 {
