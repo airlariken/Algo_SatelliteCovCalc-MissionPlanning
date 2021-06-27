@@ -103,22 +103,6 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "3696D7B8-0330-4BEA-9335-02B30B7A7EC4"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "Algo_SatelliteCovCalc&amp;MissionPlanning/SatelliteSchedulePlanning.cpp"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "406"
-            endingLineNumber = "406"
-            landmarkName = "SatelliteSchedulePlanning::greedyAlgo()"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
             uuid = "72D49FCA-5BB6-4E3E-943F-1BD040F47469"
             shouldBeEnabled = "No"
             ignoreCount = "0"
@@ -136,7 +120,7 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "330F2726-E932-487E-8FDD-D01ADC0A5A2B"
-            shouldBeEnabled = "No"
+            shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Algo_SatelliteCovCalc&amp;MissionPlanning/SatelliteSchedulePlanning.cpp"
@@ -183,32 +167,96 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "C42C2F40-CF68-415B-AF2F-F92BCD44B0E0"
-            shouldBeEnabled = "Yes"
+            uuid = "5EC29D7A-0202-4579-A42F-A69183DAAD75"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Algo_SatelliteCovCalc&amp;MissionPlanning/SatelliteSchedulePlanning.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "807"
-            endingLineNumber = "807"
-            landmarkName = "SatelliteSchedulePlanning::readScheduledTarInfFile(file_num)"
+            startingLineNumber = "1066"
+            endingLineNumber = "1066"
+            landmarkName = "SatelliteSchedulePlanning::Genetic_Algo::crossOver(g1, g2)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "8B28B0CD-F9E5-4DE5-88F0-4BB8D7D2B341"
+            uuid = "D4FFFCDB-251E-4FE5-8DE3-E6CDDD237A6E"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Algo_SatelliteCovCalc&amp;MissionPlanning/SatelliteSchedulePlanning.cpp"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "1068"
+            endingLineNumber = "1068"
+            landmarkName = "SatelliteSchedulePlanning::Genetic_Algo::crossOver(g1, g2)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "7B5F6511-0019-4B41-B51C-C65E471DBB35"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Algo_SatelliteCovCalc&amp;MissionPlanning/SatelliteSchedulePlanning.cpp"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "1057"
+            endingLineNumber = "1057"
+            landmarkName = "SatelliteSchedulePlanning::Genetic_Algo::selection()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "2AC90FC9-3B2E-46AD-B9AF-505E1EFA8E2F"
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Algo_SatelliteCovCalc&amp;MissionPlanning/SatelliteSchedulePlanning.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "799"
-            endingLineNumber = "799"
-            landmarkName = "SatelliteSchedulePlanning::readScheduledTarInfFile(file_num)"
+            startingLineNumber = "411"
+            endingLineNumber = "411"
+            landmarkName = "SatelliteSchedulePlanning::greedyAlgo()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "2AC8A334-9DB0-4AA7-B00F-57E6CEC71FE2"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Algo_SatelliteCovCalc&amp;MissionPlanning/SatelliteSchedulePlanning.cpp"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "367"
+            endingLineNumber = "367"
+            landmarkName = "SatelliteSchedulePlanning::greedyAlgo()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "E2A13730-AF15-4627-AE00-5AAA795E99E8"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Algo_SatelliteCovCalc&amp;MissionPlanning/SatelliteSchedulePlanning.cpp"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "351"
+            endingLineNumber = "351"
+            landmarkName = "SatelliteSchedulePlanning::greedyAlgo()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

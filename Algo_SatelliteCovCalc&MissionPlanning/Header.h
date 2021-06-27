@@ -7,6 +7,17 @@
 
 #ifndef Header_h
 #define Header_h
+
+//integer programming
+#include "ortools/linear_solver/linear_solver.h"
+#include <memory>
+
+#include "ortools/sat/cp_model.h"
+#include "ortools/sat/model.h"
+#include "ortools/sat/sat_parameters.pb.h"
+#include <time.h>
+
+
 #include <iostream>
 #include <vector>
 #include <string>
@@ -19,13 +30,6 @@
 #include <string>
 using namespace std;
 
-//integer programming
-#include "ortools/linear_solver/linear_solver.h"
-#include <memory>
 
-#include "ortools/sat/cp_model.h"
-#include "ortools/sat/model.h"
-#include "ortools/sat/sat_parameters.pb.h"
-#include <time.h>
 
 #endif /* Header_h */

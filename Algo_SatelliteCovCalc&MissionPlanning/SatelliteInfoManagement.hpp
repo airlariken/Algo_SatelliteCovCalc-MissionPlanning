@@ -40,8 +40,8 @@ public:
     
 //    typedef bool my_mutex;
 //    my_mutex mutex_uncover_cal = 0;
-//private:
-public:
+private:
+//public://for test
     vector<vector<SatelliteCovArea>> all_satellite_timetable;
     vector<vector<TargetInfo>> all_target_table;
     
@@ -49,8 +49,8 @@ public:
     void readSatInfoFile();
     void readTarInfoFile();
     void saveTarName(const int &num);
-//    void saveSatData();
-//    void readSatData();
+//    void saveSatData();//save vector data
+//    void readSatData();//save vector data
     EarthTime getTime(const int& cnt, const EarthTime& start_time) const;//传入该卫星的起始观察时间和第几秒观察反推出目前时间
     EarthTime getTime(string s) const;//传入该卫星的时间字符串返回一个Earthtime数据结构
     int getTime(EarthTime t, EarthTime start);//传入一个时间和开始时间返回经过的秒数

@@ -15,20 +15,20 @@ struct EarthPos{
     EarthPos() = default;
     EarthPos(double x, double y):_x(x), _y(y){}
 };
-//struct Rectangle {
-//    EarthPos left_up;
-//    EarthPos right_up;
-//    EarthPos left_down;
-//    EarthPos right_down;
-//    Rectangle(const float &max_x, const float &min_x, const float &max_y, const float &min_y)
-//    {
-//        left_up = EarthPos(min_x, max_y);
-//        right_up = EarthPos(max_x, max_y);
-//        left_down = EarthPos(min_x, min_y);
-//        right_down = EarthPos(max_x, min_y);
-//    }
-//    Rectangle() = default;
-//};
+struct Rectangle {
+    EarthPos left_up;
+    EarthPos right_up;
+    EarthPos left_down;
+    EarthPos right_down;
+    Rectangle(const float &max_x, const float &min_x, const float &max_y, const float &min_y)
+    {
+        left_up = EarthPos(min_x, max_y);
+        right_up = EarthPos(max_x, max_y);
+        left_down = EarthPos(min_x, min_y);
+        right_down = EarthPos(max_x, min_y);
+    }
+    Rectangle() = default;
+};
 
 
 struct EarthTime{
@@ -81,8 +81,8 @@ struct tar_window_unique{
 
 struct two_vec//两个向量
 {
-    EarthPos start_vec; //裁剪窗口边界向量起点
-    EarthPos end_vec; //裁剪窗口边界向量终点
+    EarthPos start_vec; //裁剪窗口其中一个边界点与所给点连成的向量
+    EarthPos end_vec; //裁剪窗口另一个边界点与所给点连成的向量
     //result函数返回叉乘方向
     int result() {
         double t = start_vec._x*end_vec._y - end_vec._x*start_vec._y;

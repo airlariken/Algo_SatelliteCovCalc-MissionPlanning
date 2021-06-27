@@ -11,8 +11,8 @@
 #include "SatelliteInfoManagement.hpp"
 
 //GenAlgo
-#define MUTATION_RATE 8 //概率倒数
-#define GENERATIONS 10
+#define MUTATION_RATE 5 //概率倒数
+#define GENERATIONS 100
 #include <random>
 
 struct TargetScheduleInfo: public TargetInfo {
@@ -237,22 +237,30 @@ public:
     {
         int fitness;
         vector<bool> code;
-        
-        void resizeCode(int code_cnt){
-            code.resize(code_cnt, 0);oiol;?
-        }
+        Gen(int n):code(n,0){}
+//        void resizeCode(int code_cnt){
+//            code.resize(code_cnt, 0);
+//        }
     };
     struct Genetic_Algo
     {
-        vector<TargetInfo> GenAlgo_target_table;
+        vector<TargetScheduleInfo> GenAlgo_target_table;
         vector<Gen*> gen_table;
         mt19937 e;
+        double threshod;
         int MaxMemroy = 600;
+        int code_len;
     public:
         //constructor
-        Genetic_Algo(int n, int tar_cnt, vector<TargetInfo> tf) : GenAlgo_target_table(tf){
-            for (int i = 0; i < n; ++i)
-            gen_table.push_back(new Gen);
+        Genetic_Algo(const int& gen_num,const int& code_length, const vector<TargetScheduleInfo> &tf) : GenAlgo_target_table(tf), code_len(code_length){
+            for (int i = 0; i < gen_num; ++i)
+                gen_table.push_back(new Gen(code_length));
+            
+            int obs_time_sum = 0;
+            for (auto it = GenAlgo_target_table.begin(); it != GenAlgo_target_table.end(); ++it)
+                obs_time_sum += it->observe_time;
+            threshod = (double)MaxMemroy/obs_time_sum;
+            
         }
         void ini();
         void mainGeneticFun();
@@ -264,11 +272,11 @@ public:
         void crossOver(Gen* g1, Gen* g2);
         void mutation(Gen* g);
         
-        struct fitnessComp{
-            bool operator()(Gen* g1, Gen* g2){
-                return g1->fitness < g2->fitness;
-            }
-        };
+//        struct fitnessComp{
+//            bool operator()(Gen* g1, Gen* g2){
+//                return g1->fitness < g2->fitness;
+//            }
+//        };
     };
 };
 

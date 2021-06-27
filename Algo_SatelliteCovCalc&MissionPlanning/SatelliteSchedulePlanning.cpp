@@ -178,29 +178,29 @@ void SatelliteSchedulePlanning::_preprocessing(time_period limit, string path_na
         }
     }
     
-    string path = "/Users/chenziwei/Downloads/Problem2InputData/input";
-    path += path_name_add;
-    path += ".txt";
-    ofstream fout(path, ios::trunc);
-    fout<<tar_num_cnt<<endl;
-    fout<<limit.first<<endl;
-    fout<<limit.second<<endl;
-    
-    int cnt = -1;
-    for (auto it1 = new_table.begin(); it1 != new_table.end(); ++it1) {
-        bool same_tar_tag = 0;
-        for (auto it2 = it1->begin(); it2 != it1->end(); ++it2) {
-            if (activated_sat[it2-it1->begin()] == false)
-                continue;
-            if (it2->size() != 0 && same_tar_tag == 0) {
-                cnt++;
-                same_tar_tag = 1;
-            }
-            for (auto it3 = it2->begin(); it3 != it2->end(); ++it3) {
-                fout<<cnt<<' '<<it2-it1->begin()<<' '<<all_targets_table[it1-new_table.begin()].target_name<<it2-it1->begin()<<' '<<all_targets_table[it1-new_table.begin()].observe_time<<' '<<all_targets_table[it1-new_table.begin()]._reward<<' '<<it3->first<<' '<<it3->second<<endl;
-            }
-        }
-    }
+//    string path = "/Users/chenziwei/Downloads/Problem2InputData/input";
+//    path += path_name_add;
+//    path += ".txt";
+//    ofstream fout(path, ios::trunc);
+//    fout<<tar_num_cnt<<endl;
+//    fout<<limit.first<<endl;
+//    fout<<limit.second<<endl;
+//    
+//    int cnt = -1;
+//    for (auto it1 = new_table.begin(); it1 != new_table.end(); ++it1) {
+//        bool same_tar_tag = 0;
+//        for (auto it2 = it1->begin(); it2 != it1->end(); ++it2) {
+//            if (activated_sat[it2-it1->begin()] == false)
+//                continue;
+//            if (it2->size() != 0 && same_tar_tag == 0) {
+//                cnt++;
+//                same_tar_tag = 1;
+//            }
+//            for (auto it3 = it2->begin(); it3 != it2->end(); ++it3) {
+//                fout<<cnt<<' '<<it2-it1->begin()<<' '<<all_targets_table[it1-new_table.begin()].target_name<<it2-it1->begin()<<' '<<all_targets_table[it1-new_table.begin()].observe_time<<' '<<all_targets_table[it1-new_table.begin()]._reward<<' '<<it3->first<<' '<<it3->second<<endl;
+//            }
+//        }
+//    }
     
     
 //    for (auto it1 = every_satellite_cov_window.begin(); it1 != every_satellite_cov_window.end(); ++it1) {
@@ -413,7 +413,7 @@ void SatelliteSchedulePlanning::greedyAlgo()
     for (auto it1 = scheduled_targets.begin(); it1 != scheduled_targets.end(); ++it1) {
         fout<<it1->target_name<<'\t'<<it1->scheduled_time.first<<'\t'<<it1->scheduled_time.second<<endl;
     }
-    outputGreedyAlgoResult();
+//    outputGreedyAlgoResult();
 }
 
 void SatelliteSchedulePlanning::outputGreedyAlgoResult()
@@ -986,6 +986,10 @@ void SatelliteSchedulePlanning::heuristicAlgo()
 //第三题
 void SatelliteSchedulePlanning::GeneticAlgo()
 {
+    const int gen_num = 1000;
+    Genetic_Algo g(gen_num,scheduled_targets.size(), scheduled_targets);
+    g.mainGeneticFun();
+    
     
 }
 
@@ -995,29 +999,34 @@ void SatelliteSchedulePlanning::Genetic_Algo::mainGeneticFun()
     static uniform_int_distribution<int> r(0,(int)gen_table.size()-1);
     int cnt = 0;
     while (cnt++ < GENERATIONS) {
-        coding();           //计算x值
+//        coding();           //计算x值
         evalFitness();
         int now_size = (int)gen_table.size();
         for (int i = 0; i < now_size; ++i)
             crossOver(gen_table[r(e)], gen_table[r(e)]);//顺带也mutation了
         selection();        //自然选择
         
-//        cout<<"第"<<cnt<<"代"<<endl;
-//        for(int i = 0; i < gen_table.size(); ++i){
+        cout<<"第"<<cnt<<"代"<<endl;
+        for(int i = gen_table.size()*4/5; i < gen_table.size(); ++i){
 //            cout<<i<<"号基因x值: "<<gen_table[i]->x<<"\t\t";
-//            cout<<i<<"号基因适应度函数值为: "<<gen_table[i]->fitness<<endl;
-//        }
+            cout<<i<<"号基因适应度函数值为: "<<gen_table[i]->fitness<<endl;
+        }
     }
 }
 
 
 void SatelliteSchedulePlanning::Genetic_Algo::ini()
 {
-    static uniform_int_distribution<int> r(0,1);
+    static uniform_real_distribution<double> r(0,1);
+    
     for (int i = 0; i < gen_table.size(); ++i) {
         while (1) {
-            for (int j = 0; j < 4; ++j) {
-                gen_table[i]->code[j] = r(e);
+            for (int j = 0; j < gen_table[i]->code.size(); ++j) {
+                double t = r(e);
+                if (t < threshod)
+                    gen_table[i]->code[j] = 1;
+                else
+                    gen_table[i]->code[j] = 0;
             }
             if (isFeasible(*gen_table[i]))
                 break;
@@ -1027,6 +1036,7 @@ void SatelliteSchedulePlanning::Genetic_Algo::ini()
 
 void SatelliteSchedulePlanning::Genetic_Algo::evalFitness()
 {
+    //更新所有gen的适应度函数
     for (int i = 0; i < gen_table.size(); ++i) {
         gen_table[i]->fitness = fx(*gen_table[i]);
     }
@@ -1037,46 +1047,57 @@ double SatelliteSchedulePlanning::Genetic_Algo::fx(Gen g)
     for (int i = 0; i < g.code.size(); ++i) {
         int tar_num = g.code[i];
         sum_reward +=GenAlgo_target_table[tar_num]._reward;
-
     }
     return sum_reward;
 }
 
 void SatelliteSchedulePlanning::Genetic_Algo::selection()
 {
-    sort(gen_table.begin(), gen_table.end(), fitnessComp());    //按适应度排序，低的意味函数值低，删去
+    auto l_fitness_cmp = [](Gen* const &g1, Gen* const &g2) ->bool {return g1->fitness < g2->fitness;};
+    sort(gen_table.begin(), gen_table.end(), l_fitness_cmp);    //按适应度排序，低的意味函数值低，删去
     gen_table.erase(gen_table.begin(), gen_table.begin()+gen_table.size()/2); //删除一半
 }
 void SatelliteSchedulePlanning::Genetic_Algo::crossOver(Gen* g1, Gen* g2)
 {
     static uniform_int_distribution<int> r(0,1);
-    Gen *n_gen = new Gen;
-    for (int i = 0 ; i < 4; ++i) {
+    Gen *n_gen = new Gen(code_len);
+    for (int i = 0 ; i < code_len; ++i) {
         if (r(e) == 1)
             n_gen->code[i] = g1->code[i];
         else
             n_gen->code[i] = g2->code[i];
     }
     mutation(n_gen);
-//    n_gen->x = n_gen->code[0]+n_gen->code[1]*2+n_gen->code[2]*4+n_gen->code[3]*8;//计算x
     n_gen->fitness = fx(*n_gen);
     gen_table.push_back(n_gen);
 }
 void SatelliteSchedulePlanning::Genetic_Algo::mutation(Gen* g)//变异
 {
     static uniform_real_distribution<double> r(0,MUTATION_RATE);
-    static uniform_int_distribution<int> r1(0,1);
+//    static uniform_int_distribution<int> r1(0,1);
     for (int i = 0 ; i < g->code.size(); ++i) {
-        if (r(e) < (double)1)   //10分之一的概率变异
-            g->code[i] = r1(e);
+        if (r(e) < (double)1) {  //MUTATION_RATE分之一的概率变异
+            if (g->code[i] == 1)
+                g->code[i] = 0;
+            else
+                g->code[i] = 1;
+        }
     }
 }
 void SatelliteSchedulePlanning::Genetic_Algo::coding()
 {
+    static uniform_real_distribution<double> r(0,1);
     for (int i = 0; i < gen_table.size(); ++i) {
-        Gen *cur = gen_table[i];
-        for (int i = 0;  i < gen_table[i]->code.size(); ++i) {
-        }
+        //一直尝试构建基因到符合内存限制条件
+        do {
+            for (int j = 0;  j < gen_table[i]->code.size(); ++j) {
+                double t = r(e);
+                if (t < threshod)
+                    gen_table[i]->code[j] = 1;
+                else
+                    gen_table[i]->code[j] = 0;
+            }
+        }while(!isFeasible(*gen_table[i]));
     }
 }
 
@@ -1085,7 +1106,8 @@ bool SatelliteSchedulePlanning::Genetic_Algo::isFeasible(Gen g)
     int sum_memory = 0;
     for (int i = 0; i < g.code.size(); ++i) {
 //        GenAlgo_target_table[g.code[i]].observe_time
-        sum_memory +=GenAlgo_target_table[g.code[i]].observe_time;
+        if(g.code[i] == 1)
+            sum_memory +=GenAlgo_target_table[i].observe_time;
     }
     if (sum_memory> MaxMemroy) {
         return false;

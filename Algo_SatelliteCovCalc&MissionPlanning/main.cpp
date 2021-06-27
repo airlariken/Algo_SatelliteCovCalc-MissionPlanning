@@ -13,12 +13,12 @@ int main(int argc, const char * argv[]) {
 //    cout<<1 * cos(M_PI/180 * 80);
 //    //第一问部分
     SatelliteInfoManagement m;
-//
+
 //    string time_start_limit = "2021/1/1 11:00:00";
 //    string time_stop_limit = "2021/1/1 12:30:00";
 //    string time_start = "2021/1/1 0:00:00";
-////
-////
+//////
+//////
 //    ifstream fin("/Users/chenziwei/C++/Algo_SatelliteCovCalc&MissionPlanning/Algo_SatelliteCovCalc&MissionPlanning/test.txt");
 //    if (fin.fail()) {
 //        exit(10);
@@ -45,7 +45,7 @@ int main(int argc, const char * argv[]) {
 //        if (i==8) {
 ////            p.integerAlgo(limit);
 //            p._preprocessing(limit);
-//            p.greedyAlgo();
+////            p.greedyAlgo();
 ////            p.heuristicAlgo();
 //        }
 //    }
@@ -60,14 +60,14 @@ int main(int argc, const char * argv[]) {
 //    m.calAllTargetCoverage();
     
     
-//    //第二问部分
-//    SatelliteSchedulePlanning p;
-//    
-//    p.readSatCovWinFile(0);
-//    p.readTarInfoFile(0);
-//    p.readScheduledTarInfFile(0);
-//    p.DPAlgo();
-//
+    //第二问部分
+    SatelliteSchedulePlanning p;
+    
+    p.readSatCovWinFile(0);
+    p.readTarInfoFile(0);
+    p.readScheduledTarInfFile(0);//读了文件就不要调用第二题的算法再算一次了！！！！！！
+
+
     
 //    p._setActivatedSat(vector<bool>{1,0,0,0,0,0,1,0,0});
 //    p._setActivatedSat(vector<bool>{1,0,0,0,0,0,1,0,0});
@@ -75,7 +75,9 @@ int main(int argc, const char * argv[]) {
 //    p._preprocessing();
     
 //    p.greedyAlgo();//可以做预处理
-//    p.DPAlgo();//第三题基于第二题
+    p.DPAlgo();//第三题基于第二题
+    p.GeneticAlgo();
+    
     
 //    p.integerAlgo(time_period(39600,45000));
 //    p.integerAlgo(time_period(39600,54000));
